@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { createClient } from "@/lib/supabase/client";
-import { FaGoogle, FaGithub } from "react-icons/fa6";
+import { FaGithub } from "react-icons/fa6";
+import { FcGoogle } from "react-icons/fc";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -81,7 +82,7 @@ export default function LoginPage() {
             {oauthLoading === "google" ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <FaGoogle className="mr-2 h-4 w-4" />
+              <FcGoogle className="mr-2 h-5 w-5" />
             )}
             Continue with Google
           </Button>

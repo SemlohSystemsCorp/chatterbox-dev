@@ -30,6 +30,11 @@ export default function DashboardLayout({
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userInitials, setUserInitials] = useState("?");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -86,65 +91,69 @@ export default function DashboardLayout({
               Chatterbox
             </Link>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="flex items-center gap-2 h-9 px-2"
-                >
-                  <Avatar className="h-7 w-7">
-                    <AvatarFallback className="text-[11px] bg-primary/10 text-primary font-semibold">
-                      {userInitials}
-                    </AvatarFallback>
-                  </Avatar>
-                  {userName && (
-                    <span className="text-sm font-medium hidden sm:inline">
-                      {userName}
-                    </span>
-                  )}
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  {userName && (
-                    <p className="text-sm font-medium">{userName}</p>
-                  )}
-                  {userEmail && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {userEmail}
-                    </p>
-                  )}
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/profile">
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/settings">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/plan">
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Plan
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleSignOut}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {mounted ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-2 h-9 px-2"
+                  >
+                    <Avatar className="h-7 w-7">
+                      <AvatarFallback className="text-[11px] bg-primary/10 text-primary font-semibold">
+                        {userInitials}
+                      </AvatarFallback>
+                    </Avatar>
+                    {userName && (
+                      <span className="text-sm font-medium hidden sm:inline">
+                        {userName}
+                      </span>
+                    )}
+                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5">
+                    {userName && (
+                      <p className="text-sm font-medium">{userName}</p>
+                    )}
+                    {userEmail && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {userEmail}
+                      </p>
+                    )}
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/profile">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/settings">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/plan">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Plan
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="h-9 w-9" />
+            )}
           </div>
         </div>
       </nav>
@@ -173,7 +182,7 @@ export default function DashboardLayout({
               Terms
             </Link>
             <Link
-              href="#"
+              href="/help"
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               Help
