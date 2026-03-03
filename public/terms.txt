@@ -1,0 +1,370 @@
+TERMS OF SERVICE
+Chatterbox
+Operated by Semloh Systems Corp
+Chicago, Illinois, United States
+
+Effective Date: March 3, 2026
+
+INTRODUCTION AND ACCEPTANCE
+
+These Terms of Service (“Terms”) govern access to and use of Chatterbox (the “Service”), an enterprise communications and collaboration platform operated by Semloh Systems Corp (“Semloh,” “Company,” “we,” “us,” or “our”), a corporation organized and operating in Chicago, Illinois.
+
+By accessing, registering for, or using the Service, you agree to be legally bound by these Terms. If you are entering into these Terms on behalf of an organization, company, or other legal entity (“Organization”), you represent and warrant that you have the authority to bind that Organization to these Terms. In such cases, “you” refers to the Organization.
+
+If you do not agree to these Terms, you may not access or use the Service.
+
+DEFINITIONS
+
+For purposes of these Terms:
+
+“Account” means a registered user or Organization account created to access the Service.
+
+“Administrator” means a user designated by an Organization with authority to manage accounts and settings.
+
+“Customer Data” means all data, content, messages, files, communications, metadata, and materials submitted to or processed by the Service by or on behalf of an Organization.
+
+“End User” means an individual authorized by an Organization to use the Service.
+
+“Subscription Term” means the period during which an Organization has agreed to subscribe to the Service.
+
+DESCRIPTION OF SERVICE
+
+Chatterbox is an enterprise-grade communications platform that may include, without limitation:
+
+Real-time messaging
+
+Group and channel-based communication
+
+Direct messaging
+
+File storage and sharing
+
+Audio or video communication features
+
+Search functionality
+
+Administrative controls
+
+Application integrations
+
+API access
+
+Analytics and reporting features
+
+We reserve the right to modify, enhance, restrict, or discontinue any part of the Service at any time. We may introduce new features that are subject to additional terms.
+
+ELIGIBILITY AND AUTHORIZED USE
+
+You must be at least 18 years of age and legally capable of entering into a binding contract.
+
+The Service is intended for business, professional, or organizational use. Personal consumer use is not intended unless explicitly permitted.
+
+You may only use the Service:
+
+In compliance with all applicable local, state, federal, and international laws.
+
+For legitimate internal business purposes.
+
+In accordance with your Organization’s policies.
+
+You may not use the Service if you are subject to sanctions or prohibited under U.S. export laws.
+
+ACCOUNT REGISTRATION AND SECURITY
+
+To access the Service, you must create an Account.
+
+You agree to:
+
+Provide accurate, current, and complete information.
+
+Maintain and promptly update your information.
+
+Maintain confidentiality of login credentials.
+
+Immediately notify Semloh of unauthorized access.
+
+You are responsible for all activity conducted through your Account. Semloh is not liable for losses resulting from unauthorized access due to your failure to safeguard credentials.
+
+ORGANIZATIONAL CONTROL AND ADMINISTRATOR RIGHTS
+
+If you access Chatterbox as part of an Organization:
+
+The Organization owns and controls the Account.
+
+Administrators may access, monitor, export, modify, or delete Customer Data.
+
+Administrators may suspend or terminate End User access.
+
+Administrators may configure retention, security, and compliance settings.
+
+Semloh acts as a service provider to the Organization and does not control internal governance decisions.
+
+ACCEPTABLE USE POLICY
+
+You may not use the Service to:
+
+Violate any law or regulation.
+
+Infringe intellectual property rights.
+
+Upload or distribute malware or malicious code.
+
+Conduct phishing, fraud, or deceptive practices.
+
+Harass, threaten, or abuse others.
+
+Share unlawful, obscene, or harmful content.
+
+Attempt unauthorized system access.
+
+Interfere with Service integrity or performance.
+
+Reverse engineer or attempt to extract source code.
+
+Resell or sublicense the Service without authorization.
+
+Use automated systems to scrape or harvest data.
+
+Semloh may investigate suspected violations and suspend or terminate accounts at its discretion.
+
+DATA OWNERSHIP AND LICENSE
+
+As between the parties, the Organization retains ownership of Customer Data.
+
+You grant Semloh a limited, non-exclusive, worldwide license to host, store, transmit, process, analyze, and display Customer Data solely for the purpose of:
+
+Providing the Service.
+
+Maintaining and improving the Service.
+
+Ensuring security and compliance.
+
+Complying with legal obligations.
+
+Semloh does not claim ownership of Customer Data.
+
+DATA PROCESSING AND PRIVACY
+
+Semloh processes Customer Data in accordance with its Privacy Policy and applicable data protection laws.
+
+If applicable, Semloh may enter into a Data Processing Agreement (DPA) with Organizations requiring compliance with regulations such as:
+
+GDPR
+
+CCPA
+
+Other applicable privacy laws
+
+Organizations are responsible for obtaining necessary consents from End Users.
+
+DATA SECURITY
+
+Semloh implements reasonable administrative, technical, and physical safeguards designed to protect Customer Data.
+
+Security measures may include:
+
+Encryption in transit
+
+Encryption at rest (where applicable)
+
+Access controls
+
+Audit logging
+
+Regular security assessments
+
+However, no system is completely secure. Semloh does not guarantee absolute security.
+
+DATA RETENTION AND DELETION
+
+Customer Data is retained according to:
+
+Organization-configured retention policies.
+
+Subscription agreements.
+
+Legal requirements.
+
+Upon termination, data may be deleted after a reasonable period unless otherwise required by law or agreed in writing.
+
+FEES, BILLING, AND PAYMENT
+
+If subscribing to a paid plan:
+
+Fees are billed in advance unless otherwise agreed.
+
+Payments are due as specified in the invoice.
+
+Late payments may incur suspension or interest.
+
+Fees are non-refundable except where required by law.
+
+Semloh may modify pricing upon renewal with reasonable notice.
+
+SERVICE LEVELS AND AVAILABILITY
+
+The Service is provided on an “as available” basis.
+
+Semloh does not guarantee:
+
+Continuous availability.
+
+Error-free performance.
+
+Specific uptime percentages unless agreed in a separate SLA.
+
+Maintenance may occur periodically and may result in temporary downtime.
+
+THIRD-PARTY INTEGRATIONS
+
+The Service may allow integration with third-party applications.
+
+Semloh is not responsible for:
+
+Third-party services.
+
+Data processed by third parties.
+
+Availability or functionality of third-party integrations.
+
+Use of third-party services is subject to their own terms.
+
+INTELLECTUAL PROPERTY RIGHTS
+
+All rights, title, and interest in and to the Service, including software, branding, trademarks, and technology, are owned by Semloh Systems Corp.
+
+You are granted a limited, non-transferable, non-exclusive right to use the Service during your Subscription Term.
+
+You may not copy, modify, distribute, or create derivative works from the Service.
+
+CONFIDENTIALITY
+
+Each party agrees to protect the other’s confidential information using reasonable safeguards.
+
+Confidential information does not include information that:
+
+Is publicly available.
+
+Was independently developed.
+
+Was lawfully obtained from a third party.
+
+TERMINATION
+
+Semloh may suspend or terminate access if:
+
+You violate these Terms.
+
+Required by law.
+
+Necessary to protect security or integrity.
+
+Upon termination:
+
+Access rights cease immediately.
+
+Data may be deleted in accordance with retention policies.
+
+Outstanding fees remain due.
+
+DISCLAIMER OF WARRANTIES
+
+THE SERVICE IS PROVIDED “AS IS” AND “AS AVAILABLE.”
+
+SEMLOH DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING:
+
+MERCHANTABILITY
+
+FITNESS FOR A PARTICULAR PURPOSE
+
+NON-INFRINGEMENT
+
+UNINTERRUPTED SERVICE
+
+LIMITATION OF LIABILITY
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW:
+
+SEMLOH SHALL NOT BE LIABLE FOR:
+
+INDIRECT DAMAGES
+
+CONSEQUENTIAL DAMAGES
+
+INCIDENTAL DAMAGES
+
+SPECIAL DAMAGES
+
+LOSS OF DATA
+
+LOSS OF PROFITS
+
+BUSINESS INTERRUPTION
+
+TOTAL LIABILITY SHALL NOT EXCEED THE AMOUNT PAID BY THE ORGANIZATION DURING THE TWELVE (12) MONTHS PRECEDING THE CLAIM.
+
+INDEMNIFICATION
+
+You agree to indemnify and hold harmless Semloh Systems Corp from claims arising from:
+
+Your violation of these Terms.
+
+Your unlawful use of the Service.
+
+Your infringement of third-party rights.
+
+EXPORT COMPLIANCE
+
+You agree to comply with all applicable export control and sanctions laws of the United States and other jurisdictions.
+
+GOVERNING LAW AND DISPUTE RESOLUTION
+
+These Terms are governed by the laws of the State of Illinois.
+
+Any disputes shall be resolved in state or federal courts located in Chicago, Illinois.
+
+You consent to the exclusive jurisdiction of those courts.
+
+FORCE MAJEURE
+
+Semloh is not liable for delays or failure to perform due to events beyond reasonable control, including:
+
+Natural disasters
+
+Power outages
+
+Internet disruptions
+
+Government actions
+
+Labor disputes
+
+ASSIGNMENT
+
+You may not assign these Terms without written consent.
+
+Semloh may assign these Terms in connection with merger, acquisition, or asset sale.
+
+MODIFICATIONS TO TERMS
+
+Semloh may update these Terms from time to time.
+
+Material changes will be communicated to administrators.
+
+Continued use constitutes acceptance.
+
+SEVERABILITY
+
+If any provision is found unenforceable, the remaining provisions remain in effect.
+
+ENTIRE AGREEMENT
+
+These Terms constitute the entire agreement between you and Semloh Systems Corp regarding the Service and supersede prior agreements.
+
+CONTACT INFORMATION
+
+Semloh Systems Corp
+Chicago, Illinois, United States
+Email: legal@semloh.com
+
+End of Terms.

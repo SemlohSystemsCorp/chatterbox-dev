@@ -1,0 +1,236 @@
+PRIVACY POLICY
+Chatterbox
+Operated by Semloh Systems Corp
+Chicago, Illinois, United States
+
+Effective Date: March 3, 2026
+
+1. INTRODUCTION
+
+This Privacy Policy describes how Semloh Systems Corp (“Semloh,” “Company,” “we,” “us,” or “our”) collects, uses, discloses, and protects information in connection with Chatterbox (the “Service”), an enterprise communications platform.
+
+This Privacy Policy applies to:
+
+* Organizational customers (“Organizations”)
+* Authorized users of Organizational accounts (“End Users”)
+* Website visitors
+* Prospective customers
+
+If you use the Service through an Organization, your Organization controls your account and the data processed within it. In those cases, Semloh acts primarily as a service provider (or “data processor”) on behalf of the Organization.
+
+2. ROLE OF THE ORGANIZATION
+
+If you access Chatterbox through your employer or another Organization:
+
+* The Organization is the data controller of Customer Data.
+* The Organization determines what data is collected and how it is used.
+* The Organization may access, modify, export, or delete your communications and data.
+
+Questions about your Organization’s data practices should be directed to your Organization’s administrator.
+
+3. INFORMATION WE COLLECT
+
+We collect information in several categories.
+
+A. Information Provided Directly
+
+This may include:
+
+* Name
+* Work email address
+* Username
+* Profile information
+* Organization name
+* Billing information
+* Communications with our support team
+
+B. Customer Data
+
+Customer Data includes:
+
+* Messages and chat content
+* Files and attachments
+* Channel activity
+* Metadata (timestamps, message IDs)
+* Usage logs
+* Integrations data
+
+Customer Data is processed on behalf of Organizations.
+
+C. Automatically Collected Information
+
+We may automatically collect:
+
+* IP address
+* Device information
+* Browser type
+* Operating system
+* Log data
+* Usage statistics
+* Session information
+* Cookies and similar technologies
+
+D. Cookies and Tracking Technologies
+
+We use cookies and similar technologies for:
+
+* Authentication
+* Session management
+* Security
+* Performance monitoring
+* Analytics
+
+You may control cookies through browser settings, though disabling them may affect functionality.
+
+4. HOW WE USE INFORMATION
+
+We use information to:
+
+* Provide and operate the Service
+* Authenticate users
+* Maintain security
+* Provide customer support
+* Process payments
+* Improve and develop features
+* Conduct analytics
+* Enforce our Terms of Service
+* Comply with legal obligations
+
+We do not sell personal information to third parties.
+
+5. LEGAL BASES FOR PROCESSING (IF APPLICABLE)
+
+Where applicable under data protection laws, we process information based on:
+
+* Performance of a contract
+* Legitimate interests
+* Legal obligations
+* Consent (where required)
+
+6. SHARING AND DISCLOSURE
+
+We may share information:
+
+A. With Service Providers
+
+We use third-party vendors to provide services such as:
+
+* Cloud hosting
+* Payment processing
+* Analytics
+* Security monitoring
+* Customer support tools
+
+These providers are contractually obligated to safeguard information.
+
+B. With the Organization
+
+Organizations and their administrators may access Customer Data associated with their accounts.
+
+C. For Legal Reasons
+
+We may disclose information:
+
+* To comply with law
+* In response to lawful requests
+* To protect rights, safety, or property
+* To prevent fraud or security issues
+
+D. Business Transfers
+
+If Semloh undergoes a merger, acquisition, or asset sale, information may be transferred as part of that transaction.
+
+7. DATA RETENTION
+
+We retain information:
+
+* For the duration of the Subscription Term
+* As required by the Organization’s retention policies
+* As necessary to comply with legal obligations
+* As needed to resolve disputes and enforce agreements
+
+Upon termination, data may be deleted or anonymized after a reasonable period unless otherwise required by law.
+
+8. DATA SECURITY
+
+We implement administrative, technical, and physical safeguards designed to protect information, including:
+
+* Encryption in transit
+* Encryption at rest (where applicable)
+* Access controls
+* Role-based permissions
+* Audit logging
+* Security monitoring
+
+Despite safeguards, no system can guarantee absolute security.
+
+9. INTERNATIONAL DATA TRANSFERS
+
+Information may be transferred to and processed in the United States or other countries where our service providers operate.
+
+Where required, we implement appropriate safeguards to protect cross-border data transfers.
+
+10. YOUR RIGHTS
+
+Depending on your jurisdiction, you may have rights including:
+
+* Access to your personal information
+* Correction of inaccurate information
+* Deletion of personal information
+* Restriction of processing
+* Data portability
+* Objection to certain processing
+* Withdrawal of consent
+
+If you are an End User under an Organization account, requests should first be directed to your Organization.
+
+We will respond to valid requests in accordance with applicable law.
+
+11. CALIFORNIA PRIVACY RIGHTS (IF APPLICABLE)
+
+If you are a California resident, you may have rights under the California Consumer Privacy Act (CCPA), including:
+
+* Right to know what personal information is collected
+* Right to request deletion
+* Right to correct inaccurate information
+* Right to opt out of sale (note: we do not sell personal information)
+* Right to non-discrimination for exercising privacy rights
+
+Requests may be submitted via the contact information below.
+
+12. CHILDREN’S PRIVACY
+
+The Service is not intended for individuals under 18 years of age. We do not knowingly collect personal information from minors.
+
+If we become aware that we have collected information from a minor without appropriate authorization, we will take steps to delete it.
+
+13. THIRD-PARTY LINKS AND INTEGRATIONS
+
+The Service may contain links to third-party websites or integrate with third-party services.
+
+We are not responsible for the privacy practices of third parties. Use of third-party services is subject to their own policies.
+
+14. AUTOMATED DECISION-MAKING
+
+Chatterbox does not use Customer Data for automated decision-making that produces legal or similarly significant effects without human involvement.
+
+15. CHANGES TO THIS PRIVACY POLICY
+
+We may update this Privacy Policy periodically.
+
+If material changes are made, we will:
+
+* Post the updated version on our website, and/or
+* Notify Organization administrators
+
+Continued use of the Service after updates constitutes acceptance.
+
+16. CONTACT INFORMATION
+
+If you have questions about this Privacy Policy or wish to exercise applicable rights, contact:
+
+Semloh Systems Corp
+Chicago, Illinois, United States
+Email: [privacy@semloh.com](mailto:privacy@semloh.com)
+
+End of Privacy Policy.
