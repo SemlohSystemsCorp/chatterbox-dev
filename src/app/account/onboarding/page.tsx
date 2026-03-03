@@ -36,9 +36,15 @@ export default function OnboardingPage() {
       // Pre-fill name from profile if available
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, company")
+        .select("full_name, company, onboarding_completed")
         .eq("id", user.id)
         .single();
+
+      // Redirect if onboarding already completed
+      if (profile?.onboarding_completed) {
+        router.push("/dashboard");
+        return;
+      }
 
       if (profile?.full_name) {
         setName(profile.full_name);

@@ -16,6 +16,10 @@ export default function ProfilePage() {
   const [fullName, setFullName] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [company, setCompany] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [phone, setPhone] = useState("");
+  const [bio, setBio] = useState("");
+  const [website, setWebsite] = useState("");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -35,7 +39,9 @@ export default function ProfilePage() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, display_name, company")
+        .select(
+          "full_name, display_name, company, job_title, phone, bio, website"
+        )
         .eq("id", user.id)
         .single();
 
@@ -43,6 +49,10 @@ export default function ProfilePage() {
         setFullName(profile.full_name ?? "");
         setDisplayName(profile.display_name ?? "");
         setCompany(profile.company ?? "");
+        setJobTitle(profile.job_title ?? "");
+        setPhone(profile.phone ?? "");
+        setBio(profile.bio ?? "");
+        setWebsite(profile.website ?? "");
       }
 
       setLoading(false);
@@ -51,7 +61,8 @@ export default function ProfilePage() {
     load();
   }, [router]);
 
-  async function handleSave() {
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
     setSaving(true);
     setSuccessMessage(null);
     setErrorMessage(null);
@@ -62,7 +73,7 @@ export default function ProfilePage() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      setErrorMessage("You must be logged in to update your profile.");
+      setErrorMessage("You must be logged in.");
       setSaving(false);
       return;
     }
@@ -70,9 +81,13 @@ export default function ProfilePage() {
     const { error } = await supabase
       .from("profiles")
       .update({
-        full_name: fullName,
-        display_name: displayName,
-        company,
+        full_name: fullName.trim() || null,
+        display_name: displayName.trim() || null,
+        company: company.trim() || null,
+        job_title: jobTitle.trim() || null,
+        phone: phone.trim() || null,
+        bio: bio.trim() || null,
+        website: website.trim() || null,
       })
       .eq("id", user.id);
 
@@ -80,6 +95,7 @@ export default function ProfilePage() {
       setErrorMessage("Failed to update profile. Please try again.");
     } else {
       setSuccessMessage("Profile updated successfully.");
+      setTimeout(() => setSuccessMessage(null), 3000);
     }
 
     setSaving(false);
@@ -95,7 +111,6 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
-      {/* Back link */}
       <Link
         href="/dashboard"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
@@ -104,7 +119,6 @@ export default function ProfilePage() {
         Back to dashboard
       </Link>
 
-      {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <div className="h-11 w-11 rounded-lg bg-primary/10 flex items-center justify-center">
           <User className="h-5 w-5 text-primary" />
@@ -117,8 +131,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Form */}
-      <div className="space-y-5">
+      <form onSubmit={handleSave} className="space-y-5">
         {/* Email (read-only) */}
         <div>
           <label className="block text-sm font-medium mb-1.5">Email</label>
@@ -128,52 +141,94 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        {/* Full Name */}
+        <div className="grid sm:grid-cols-2 gap-5">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">
+              Full Name
+            </label>
+            <Input
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Your full name"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">
+              Display Name
+            </label>
+            <Input
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="How others see you"
+            />
+          </div>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-5">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">
+              Job Title
+            </label>
+            <Input
+              value={jobTitle}
+              onChange={(e) => setJobTitle(e.target.value)}
+              placeholder="e.g. Software Engineer"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Company</label>
+            <Input
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              placeholder="Your company or organization"
+            />
+          </div>
+        </div>
+
         <div>
-          <label className="block text-sm font-medium mb-1.5">Full Name</label>
+          <label className="block text-sm font-medium mb-1.5">Phone</label>
           <Input
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Your full name"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+1 (555) 000-0000"
           />
         </div>
 
-        {/* Display Name */}
         <div>
-          <label className="block text-sm font-medium mb-1.5">
-            Display Name
-          </label>
-          <Input
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="How others see you in Chatterbox"
+          <label className="block text-sm font-medium mb-1.5">Bio</label>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            placeholder="Tell your team a little about yourself"
+            rows={3}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
           />
         </div>
 
-        {/* Company */}
         <div>
-          <label className="block text-sm font-medium mb-1.5">Company</label>
+          <label className="block text-sm font-medium mb-1.5">Website</label>
           <Input
-            value={company}
-            onChange={(e) => setCompany(e.target.value)}
-            placeholder="Your company or organization"
+            type="url"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            placeholder="https://yourwebsite.com"
           />
         </div>
 
         {/* Messages */}
         {successMessage && (
-          <p className="text-sm text-green-600 dark:text-green-400">
+          <div className="rounded-lg bg-green-500/10 border border-green-500/20 px-4 py-3 text-sm text-green-600 dark:text-green-400">
             {successMessage}
-          </p>
+          </div>
         )}
         {errorMessage && (
-          <p className="text-sm text-red-600 dark:text-red-400">
+          <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
             {errorMessage}
-          </p>
+          </div>
         )}
 
-        {/* Save button */}
-        <Button onClick={handleSave} disabled={saving} className="gap-2">
+        <Button type="submit" disabled={saving} className="gap-2">
           {saving ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
@@ -181,7 +236,7 @@ export default function ProfilePage() {
           )}
           {saving ? "Saving..." : "Save changes"}
         </Button>
-      </div>
+      </form>
     </div>
   );
 }

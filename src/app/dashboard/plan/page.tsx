@@ -1,10 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Sparkles, Zap, Crown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  Check,
+  Sparkles,
+  Zap,
+  Crown,
+  Loader2,
+  Hash,
+  Users,
+  HardDrive,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { createClient } from "@/lib/supabase/client";
 
 const plans = [
   {
@@ -22,7 +34,6 @@ const plans = [
     ],
     buttonLabel: "Current Plan",
     highlighted: false,
-    current: true,
   },
   {
     name: "Pro",
@@ -42,7 +53,6 @@ const plans = [
     ],
     buttonLabel: "Upgrade to Pro",
     highlighted: true,
-    current: false,
   },
   {
     name: "Enterprise",
@@ -62,7 +72,6 @@ const plans = [
     ],
     buttonLabel: "Contact Sales",
     highlighted: false,
-    current: false,
   },
 ];
 
@@ -90,11 +99,76 @@ const faqs = [
 ];
 
 export default function PlanPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [workspaceCount, setWorkspaceCount] = useState(0);
+  const [messageCount, setMessageCount] = useState(0);
+  const [memberCount, setMemberCount] = useState(0);
+
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      // Get workspace count
+      const { data: memberships } = await supabase
+        .from("workspace_members")
+        .select("workspace_id")
+        .eq("user_id", user.id);
+
+      const wsCount = memberships?.length ?? 0;
+      setWorkspaceCount(wsCount);
+
+      if (memberships && memberships.length > 0) {
+        const wsIds = memberships.map((m) => m.workspace_id);
+
+        // Get total members across all workspaces
+        const { count: totalMembers } = await supabase
+          .from("workspace_members")
+          .select("id", { count: "exact", head: true })
+          .in("workspace_id", wsIds);
+        setMemberCount(totalMembers ?? 0);
+
+        // Get channels, then messages count
+        const { data: channels } = await supabase
+          .from("channels")
+          .select("id")
+          .in("workspace_id", wsIds);
+
+        if (channels && channels.length > 0) {
+          const channelIds = channels.map((c) => c.id);
+          const { count: totalMessages } = await supabase
+            .from("messages")
+            .select("id", { count: "exact", head: true })
+            .in("channel_id", channelIds);
+          setMessageCount(totalMessages ?? 0);
+        }
+      }
+
+      setLoading(false);
+    }
+
+    load();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-24">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
-      {/* Back link */}
       <Link
         href="/dashboard"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
@@ -103,12 +177,41 @@ export default function PlanPage() {
         Back to dashboard
       </Link>
 
-      {/* Heading */}
       <div className="mb-10">
         <h1 className="text-3xl font-bold tracking-tight">Plan & Billing</h1>
         <p className="text-muted-foreground mt-1.5">
           Manage your subscription and billing details.
         </p>
+      </div>
+
+      {/* Usage stats */}
+      <div className="grid grid-cols-3 gap-4 mb-10">
+        <div className="rounded-xl border border-border/50 bg-card p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Hash className="h-4 w-4 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Workspaces</span>
+          </div>
+          <p className="text-2xl font-bold">{workspaceCount}</p>
+          <p className="text-xs text-muted-foreground">of 3 on Free</p>
+        </div>
+        <div className="rounded-xl border border-border/50 bg-card p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Members</span>
+          </div>
+          <p className="text-2xl font-bold">{memberCount}</p>
+          <p className="text-xs text-muted-foreground">across all workspaces</p>
+        </div>
+        <div className="rounded-xl border border-border/50 bg-card p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <HardDrive className="h-4 w-4 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Messages</span>
+          </div>
+          <p className="text-2xl font-bold">
+            {messageCount.toLocaleString()}
+          </p>
+          <p className="text-xs text-muted-foreground">of 10,000 on Free</p>
+        </div>
       </div>
 
       {/* Current plan card */}
@@ -123,21 +226,25 @@ export default function PlanPage() {
                 <h2 className="font-semibold text-lg">Free Plan</h2>
                 <Badge variant="secondary">Current</Badge>
               </div>
-              <p className="text-sm text-muted-foreground">
-                $0 / month
-              </p>
+              <p className="text-sm text-muted-foreground">$0 / month</p>
             </div>
           </div>
         </div>
         <div className="grid sm:grid-cols-2 gap-2 mt-4">
-          {["Up to 3 workspaces", "10,000 messages per workspace", "5 GB file storage", "7-day message history"].map(
-            (feature) => (
-              <div key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Check className="h-3.5 w-3.5 text-primary shrink-0" />
-                {feature}
-              </div>
-            )
-          )}
+          {[
+            "Up to 3 workspaces",
+            "10,000 messages per workspace",
+            "5 GB file storage",
+            "7-day message history",
+          ].map((feature) => (
+            <div
+              key={feature}
+              className="flex items-center gap-2 text-sm text-muted-foreground"
+            >
+              <Check className="h-3.5 w-3.5 text-primary shrink-0" />
+              {feature}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -149,6 +256,7 @@ export default function PlanPage() {
         <div className="grid gap-4">
           {plans.map((plan) => {
             const Icon = plan.icon;
+            const isCurrent = plan.name === "Free";
             return (
               <div
                 key={plan.name}
@@ -167,16 +275,10 @@ export default function PlanPage() {
                   <div className="flex items-center gap-3">
                     <div
                       className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                        plan.highlighted
-                          ? "bg-primary/15"
-                          : "bg-primary/10"
+                        plan.highlighted ? "bg-primary/15" : "bg-primary/10"
                       }`}
                     >
-                      <Icon
-                        className={`h-5 w-5 ${
-                          plan.highlighted ? "text-primary" : "text-primary"
-                        }`}
-                      />
+                      <Icon className="h-5 w-5 text-primary" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-lg">{plan.name}</h3>
@@ -206,11 +308,17 @@ export default function PlanPage() {
                 </div>
 
                 <Button
-                  variant={plan.current ? "outline" : plan.highlighted ? "default" : "outline"}
+                  variant={
+                    isCurrent
+                      ? "outline"
+                      : plan.highlighted
+                        ? "default"
+                        : "outline"
+                  }
                   className="w-full"
-                  disabled={plan.current}
+                  disabled={isCurrent}
                 >
-                  {plan.buttonLabel}
+                  {isCurrent ? "Current Plan" : plan.buttonLabel}
                 </Button>
               </div>
             );
@@ -235,7 +343,7 @@ export default function PlanPage() {
               >
                 <span className="font-medium text-sm">{faq.question}</span>
                 <span className="text-muted-foreground text-sm ml-4 shrink-0">
-                  {openFaq === index ? "−" : "+"}
+                  {openFaq === index ? "\u2212" : "+"}
                 </span>
               </button>
               {openFaq === index && (
