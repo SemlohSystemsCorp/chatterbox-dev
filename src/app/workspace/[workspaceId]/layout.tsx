@@ -29,6 +29,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
+import { WorkspaceProvider } from "@/contexts/workspace-context";
+import { InviteModal } from "@/components/workspace/invite-modal";
+import { MembersPanel } from "@/components/workspace/members-panel";
 
 interface ChannelItem {
   id: string;
@@ -50,8 +53,12 @@ export default function WorkspaceLayout({
   const [channels, setChannels] = useState<ChannelItem[]>([]);
   const [userName, setUserName] = useState("You");
   const [userInitials, setUserInitials] = useState("YO");
+  const [userId, setUserId] = useState("");
+  const [userRole, setUserRole] = useState("member");
   const [channelsOpen, setChannelsOpen] = useState(true);
   const [dmsOpen, setDmsOpen] = useState(true);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [membersPanelOpen, setMembersPanelOpen] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -64,6 +71,8 @@ export default function WorkspaceLayout({
         router.push("/login");
         return;
       }
+
+      setUserId(user.id);
 
       // Get profile
       const { data: profile } = await supabase
@@ -94,6 +103,18 @@ export default function WorkspaceLayout({
 
       if (workspace) {
         setWorkspaceName(workspace.name);
+      }
+
+      // Get user's role in this workspace
+      const { data: membership } = await supabase
+        .from("workspace_members")
+        .select("role")
+        .eq("workspace_id", workspaceId)
+        .eq("user_id", user.id)
+        .single();
+
+      if (membership) {
+        setUserRole(membership.role);
       }
 
       // Get channels for this workspace
@@ -151,7 +172,7 @@ export default function WorkspaceLayout({
                 <Settings className="mr-2 h-4 w-4" />
                 Workspace settings
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setInviteModalOpen(true)}>
                 <Users className="mr-2 h-4 w-4" />
                 Invite people
               </DropdownMenuItem>
@@ -300,7 +321,34 @@ export default function WorkspaceLayout({
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">{children}</div>
+      <WorkspaceProvider
+        value={{
+          workspaceId,
+          workspaceName,
+          currentUserId: userId,
+          currentUserRole: userRole,
+          openInviteModal: () => setInviteModalOpen(true),
+          openMembersPanel: () => setMembersPanelOpen(true),
+        }}
+      >
+        <div className="flex-1 flex flex-col min-w-0">{children}</div>
+      </WorkspaceProvider>
+
+      {/* Modals */}
+      <InviteModal
+        workspaceId={workspaceId}
+        workspaceName={workspaceName}
+        currentUserRole={userRole}
+        open={inviteModalOpen}
+        onOpenChange={setInviteModalOpen}
+      />
+      <MembersPanel
+        workspaceId={workspaceId}
+        currentUserId={userId}
+        currentUserRole={userRole}
+        open={membersPanelOpen}
+        onOpenChange={setMembersPanelOpen}
+      />
     </div>
   );
 }

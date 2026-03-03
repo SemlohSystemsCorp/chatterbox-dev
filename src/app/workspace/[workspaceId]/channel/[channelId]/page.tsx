@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { createClient } from "@/lib/supabase/client";
+import { useWorkspace } from "@/contexts/workspace-context";
 
 interface MessageData {
   id: string;
@@ -35,6 +36,7 @@ export default function ChannelPage() {
   const params = useParams();
   const channelId = params.channelId as string;
   const workspaceId = params.workspaceId as string;
+  const { openMembersPanel } = useWorkspace();
 
   const [channelName, setChannelName] = useState("");
   const [channelType, setChannelType] = useState<string>("public");
@@ -194,7 +196,7 @@ export default function ChannelPage() {
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Pin className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={openMembersPanel}>
             <Users className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon" className="h-8 w-8">
