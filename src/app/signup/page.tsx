@@ -125,7 +125,7 @@ export default function SignupPage() {
             {oauthLoading === "google" ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <FcGoogle className="mr-2 h-5 w-5" />
+              <FcGoogle className="mr-2 h-6 w-6" />
             )}
             Continue with Google
           </Button>
@@ -139,7 +139,7 @@ export default function SignupPage() {
             {oauthLoading === "github" ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <FaGithub className="mr-2 h-4 w-4" />
+              <FaGithub className="mr-2 h-5 w-5" />
             )}
             Continue with GitHub
           </Button>
