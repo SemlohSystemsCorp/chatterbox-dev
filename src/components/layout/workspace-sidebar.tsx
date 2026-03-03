@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import {
-  MessageSquare,
   Hash,
   Lock,
   Plus,
@@ -74,7 +73,7 @@ export function WorkspaceSidebar() {
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 hover:bg-sidebar-accent rounded-md px-2 py-1 transition-colors">
               <div className="h-6 w-6 rounded-md bg-sidebar-primary flex items-center justify-center">
-                <MessageSquare className="h-3.5 w-3.5 text-sidebar-primary-foreground" />
+                <span className="text-xs font-bold text-sidebar-primary-foreground">A</span>
               </div>
               <span className="text-sm font-semibold truncate max-w-[120px]">
                 Acme Corp

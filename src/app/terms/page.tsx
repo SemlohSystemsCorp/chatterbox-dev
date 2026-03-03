@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import Link from "next/link";
-import { MessageSquare, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default async function TermsPage() {
@@ -27,12 +27,7 @@ export default async function TermsPage() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <MessageSquare className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="text-lg font-bold">Chatterbox</span>
-          </div>
+          <span className="text-lg font-bold">Chatterbox</span>
         </div>
 
         <h1 className="text-3xl font-bold tracking-tight mb-8">

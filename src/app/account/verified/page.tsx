@@ -1,20 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { MessageSquare, CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
+import { CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function VerifiedPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md text-center">
-        {/* Logo */}
-        <Link href="/" className="inline-flex items-center gap-2 mb-8">
-          <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
-            <MessageSquare className="h-6 w-6 text-primary-foreground" />
-          </div>
-        </Link>
-
         {/* Success Icon */}
         <div className="relative inline-flex mb-6">
           <div className="h-20 w-20 rounded-full bg-green-500/10 flex items-center justify-center">
@@ -42,7 +35,7 @@ export default function VerifiedPage() {
             </Link>
           </Button>
           <Button variant="outline" size="lg" className="w-full" asChild>
-            <Link href="/dashboard?onboarding=true">
+            <Link href="/account/onboarding">
               <Sparkles className="mr-2 h-4 w-4" />
               Complete Onboarding
             </Link>

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MessageSquare, Loader2, ArrowRight, RotateCw } from "lucide-react";
+import { Loader2, ArrowRight, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -147,9 +147,6 @@ export default function VerifyPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="w-full max-w-sm text-center">
-          <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <MessageSquare className="h-6 w-6 text-primary" />
-          </div>
           <h1 className="text-2xl font-bold tracking-tight mb-2">
             No verification pending
           </h1>
@@ -170,11 +167,6 @@ export default function VerifyPage() {
       <div className="w-full max-w-sm">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
-              <MessageSquare className="h-6 w-6 text-primary-foreground" />
-            </div>
-          </Link>
           <h1 className="text-2xl font-bold tracking-tight">
             Check your email
           </h1>

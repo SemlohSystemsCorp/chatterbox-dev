@@ -1,36 +1,202 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { MessageSquare, Plus, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  Plus,
+  ArrowRight,
+  Loader2,
+  Hash,
+  Users,
+  Clock,
+  ChevronRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
+
+interface WorkspaceWithRole {
+  id: string;
+  name: string;
+  slug: string;
+  icon_url: string | null;
+  role: string;
+}
 
 export default function DashboardPage() {
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="max-w-lg text-center">
-        <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
-          <MessageSquare className="h-8 w-8 text-primary" />
-        </div>
-        <h1 className="text-3xl font-bold tracking-tight mb-3">
-          Welcome to Chatterbox
-        </h1>
-        <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-          You&apos;re all set! Create your first workspace to start
-          collaborating with your team.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Button size="lg" asChild>
-            <Link href="/dashboard">
-              <Plus className="mr-2 h-4 w-4" />
-              Create a Workspace
-            </Link>
-          </Button>
-          <Button variant="outline" size="lg" asChild>
-            <Link href="/dashboard">
-              Join a Workspace
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [workspaces, setWorkspaces] = useState<WorkspaceWithRole[]>([]);
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, display_name")
+        .eq("id", user.id)
+        .single();
+
+      setUserName(profile?.display_name || profile?.full_name || null);
+
+      const { data: memberships } = await supabase
+        .from("workspace_members")
+        .select("workspace_id, role, workspaces(id, name, slug, icon_url)")
+        .eq("user_id", user.id);
+
+      if (memberships && memberships.length > 0) {
+        const ws = memberships.map((m) => {
+          const w = m.workspaces as unknown as {
+            id: string;
+            name: string;
+            slug: string;
+            icon_url: string | null;
+          };
+          return {
+            id: w.id,
+            name: w.name,
+            slug: w.slug,
+            icon_url: w.icon_url,
+            role: m.role,
+          };
+        });
+        setWorkspaces(ws);
+      }
+
+      setLoading(false);
+    }
+
+    load();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-24">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
+    );
+  }
+
+  const greeting = userName
+    ? `Welcome back, ${userName}`
+    : "Welcome to Chatterbox";
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 py-12">
+      {/* Header */}
+      <div className="mb-10">
+        <h1 className="text-3xl font-bold tracking-tight">{greeting}</h1>
+        <p className="text-muted-foreground mt-1.5">
+          {workspaces.length > 0
+            ? "Jump into a workspace or create a new one."
+            : "Get started by creating your first workspace or joining one."}
+        </p>
+      </div>
+
+      {/* Workspaces list */}
+      {workspaces.length > 0 && (
+        <div className="mb-10">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            Your workspaces
+          </h2>
+          <div className="space-y-2">
+            {workspaces.map((ws) => (
+              <Link
+                key={ws.id}
+                href={`/workspace/${ws.id}/channel/general`}
+                className="flex items-center gap-4 rounded-xl border border-border/50 bg-card p-4 hover:border-primary/25 hover:bg-card/80 hover:shadow-lg hover:shadow-primary/[0.03] transition-all group"
+              >
+                <div className="h-11 w-11 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  {ws.icon_url ? (
+                    <img
+                      src={ws.icon_url}
+                      alt={ws.name}
+                      className="h-11 w-11 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <span className="text-lg font-bold text-primary">
+                      {ws.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold truncate">{ws.name}</p>
+                  <p className="text-xs text-muted-foreground capitalize">
+                    {ws.role}
+                  </p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Quick actions */}
+      <div className="grid sm:grid-cols-2 gap-4">
+        <Link
+          href="/dashboard/new/workspace"
+          className="rounded-xl border border-dashed border-border/60 bg-card/30 p-6 hover:border-primary/30 hover:bg-card/50 transition-all group"
+        >
+          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/15 transition-colors">
+            <Plus className="h-5 w-5 text-primary" />
+          </div>
+          <h3 className="font-semibold mb-1">Create a workspace</h3>
+          <p className="text-sm text-muted-foreground">
+            Set up a new workspace for your team to collaborate.
+          </p>
+        </Link>
+
+        <Link
+          href="/dashboard/join"
+          className="rounded-xl border border-dashed border-border/60 bg-card/30 p-6 hover:border-primary/30 hover:bg-card/50 transition-all group"
+        >
+          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/15 transition-colors">
+            <ArrowRight className="h-5 w-5 text-primary" />
+          </div>
+          <h3 className="font-semibold mb-1">Join a workspace</h3>
+          <p className="text-sm text-muted-foreground">
+            Enter an invite code or link to join an existing workspace.
+          </p>
+        </Link>
+      </div>
+
+      {/* Quick links */}
+      {workspaces.length > 0 && (
+        <div className="mt-10">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            Quick links
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" className="gap-2" asChild>
+              <Link href="/dashboard/new/workspace">
+                <Hash className="h-3.5 w-3.5" />
+                New workspace
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2" asChild>
+              <Link href="/dashboard/join">
+                <Users className="h-3.5 w-3.5" />
+                Join workspace
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2" disabled>
+              <Clock className="h-3.5 w-3.5" />
+              Recent threads
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

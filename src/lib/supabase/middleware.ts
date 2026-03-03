@@ -33,10 +33,11 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Redirect unauthenticated users away from dashboard
+  // Redirect unauthenticated users away from protected routes
   if (
     !user &&
-    request.nextUrl.pathname.startsWith("/workspace")
+    (request.nextUrl.pathname.startsWith("/workspace") ||
+      request.nextUrl.pathname.startsWith("/dashboard"))
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
