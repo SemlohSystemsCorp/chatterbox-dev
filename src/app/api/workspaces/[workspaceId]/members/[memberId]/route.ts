@@ -28,24 +28,26 @@ export async function PATCH(
   const admin = createAdminClient();
 
   // Get requesting user's membership
-  const { data: myMembership } = await admin
+  const { data: myMembers } = await admin
     .from("workspace_members")
     .select("role, user_id")
     .eq("workspace_id", workspaceId)
-    .eq("user_id", user.id)
-    .single();
+    .eq("user_id", user.id);
+
+  const myMembership = myMembers?.[0];
 
   if (!myMembership) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   // Get target member
-  const { data: targetMember } = await admin
+  const { data: targetMembers } = await admin
     .from("workspace_members")
     .select("id, user_id, role")
     .eq("id", memberId)
-    .eq("workspace_id", workspaceId)
-    .single();
+    .eq("workspace_id", workspaceId);
+
+  const targetMember = targetMembers?.[0];
 
   if (!targetMember) {
     return NextResponse.json({ error: "Member not found" }, { status: 404 });
@@ -122,24 +124,26 @@ export async function DELETE(
   const admin = createAdminClient();
 
   // Get requesting user's membership
-  const { data: myMembership } = await admin
+  const { data: myMembers2 } = await admin
     .from("workspace_members")
     .select("role")
     .eq("workspace_id", workspaceId)
-    .eq("user_id", user.id)
-    .single();
+    .eq("user_id", user.id);
+
+  const myMembership = myMembers2?.[0];
 
   if (!myMembership || !["owner", "admin"].includes(myMembership.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   // Get target member
-  const { data: targetMember } = await admin
+  const { data: targetMembers2 } = await admin
     .from("workspace_members")
     .select("id, user_id, role")
     .eq("id", memberId)
-    .eq("workspace_id", workspaceId)
-    .single();
+    .eq("workspace_id", workspaceId);
+
+  const targetMember = targetMembers2?.[0];
 
   if (!targetMember) {
     return NextResponse.json({ error: "Member not found" }, { status: 404 });

@@ -19,12 +19,13 @@ export async function POST(
   const admin = createAdminClient();
 
   // Get user's membership
-  const { data: membership } = await admin
+  const { data: memberships } = await admin
     .from("workspace_members")
     .select("id, role")
     .eq("workspace_id", workspaceId)
-    .eq("user_id", user.id)
-    .single();
+    .eq("user_id", user.id);
+
+  const membership = memberships?.[0];
 
   if (!membership) {
     return NextResponse.json(

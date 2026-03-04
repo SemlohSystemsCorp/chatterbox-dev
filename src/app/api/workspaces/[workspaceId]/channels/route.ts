@@ -19,12 +19,13 @@ export async function GET(
   const admin = createAdminClient();
 
   // Verify membership
-  const { data: membership } = await admin
+  const { data: members } = await admin
     .from("workspace_members")
     .select("role")
     .eq("workspace_id", workspaceId)
-    .eq("user_id", user.id)
-    .single();
+    .eq("user_id", user.id);
+
+  const membership = members?.[0];
 
   if (!membership) {
     return NextResponse.json({ error: "Not a member" }, { status: 403 });
@@ -79,12 +80,13 @@ export async function POST(
   const admin = createAdminClient();
 
   // Verify membership
-  const { data: membership } = await admin
+  const { data: members } = await admin
     .from("workspace_members")
     .select("role")
     .eq("workspace_id", workspaceId)
-    .eq("user_id", user.id)
-    .single();
+    .eq("user_id", user.id);
+
+  const membership = members?.[0];
 
   if (!membership) {
     return NextResponse.json({ error: "Not a member" }, { status: 403 });

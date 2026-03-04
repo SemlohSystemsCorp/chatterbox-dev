@@ -19,12 +19,13 @@ export async function DELETE(
   const admin = createAdminClient();
 
   // Verify owner
-  const { data: membership } = await admin
+  const { data: members } = await admin
     .from("workspace_members")
     .select("role")
     .eq("workspace_id", workspaceId)
-    .eq("user_id", user.id)
-    .single();
+    .eq("user_id", user.id);
+
+  const membership = members?.[0];
 
   if (!membership || membership.role !== "owner") {
     return NextResponse.json(

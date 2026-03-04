@@ -21,12 +21,13 @@ export async function DELETE(
   const admin = createAdminClient();
 
   // Verify admin/owner
-  const { data: membership } = await admin
+  const { data: members } = await admin
     .from("workspace_members")
     .select("role")
     .eq("workspace_id", workspaceId)
-    .eq("user_id", user.id)
-    .single();
+    .eq("user_id", user.id);
+
+  const membership = members?.[0];
 
   if (!membership || !["owner", "admin"].includes(membership.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

@@ -19,15 +19,19 @@ export async function GET(
   const admin = createAdminClient();
 
   // Verify admin/owner
-  const { data: membership } = await admin
+  const { data: members } = await admin
     .from("workspace_members")
     .select("role")
     .eq("workspace_id", workspaceId)
-    .eq("user_id", user.id)
-    .single();
+    .eq("user_id", user.id);
+
+  const membership = members?.[0];
 
   if (!membership || !["owner", "admin"].includes(membership.role)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: `You must be an admin or owner to view invitations. Your role: ${membership?.role ?? "not a member"}` },
+      { status: 403 }
+    );
   }
 
   // Get pending invitations
@@ -69,15 +73,19 @@ export async function POST(
   const admin = createAdminClient();
 
   // Verify admin/owner
-  const { data: membership } = await admin
+  const { data: members } = await admin
     .from("workspace_members")
     .select("role")
     .eq("workspace_id", workspaceId)
-    .eq("user_id", user.id)
-    .single();
+    .eq("user_id", user.id);
+
+  const membership = members?.[0];
 
   if (!membership || !["owner", "admin"].includes(membership.role)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: `You must be an admin or owner to invite people. Your role: ${membership?.role ?? "not a member"}` },
+      { status: 403 }
+    );
   }
 
   // Check if already a member (by email)
