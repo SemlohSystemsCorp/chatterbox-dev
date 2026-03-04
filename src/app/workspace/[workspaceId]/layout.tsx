@@ -49,6 +49,7 @@ export default function WorkspaceLayout({
   const pathname = usePathname();
   const workspaceId = params.workspaceId as string;
 
+  const [mounted, setMounted] = useState(false);
   const [workspaceName, setWorkspaceName] = useState("Workspace");
   const [channels, setChannels] = useState<ChannelItem[]>([]);
   const [userName, setUserName] = useState("You");
@@ -59,6 +60,10 @@ export default function WorkspaceLayout({
   const [dmsOpen, setDmsOpen] = useState(true);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [membersPanelOpen, setMembersPanelOpen] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -109,45 +114,58 @@ export default function WorkspaceLayout({
       <div className="flex flex-col w-64 bg-sidebar text-sidebar-foreground shrink-0">
         {/* Workspace Header */}
         <div className="h-14 flex items-center justify-between px-4 border-b border-sidebar-border">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 hover:bg-sidebar-accent rounded-md px-2 py-1 transition-colors">
-                <div className="h-6 w-6 rounded-md bg-sidebar-primary flex items-center justify-center">
-                  <span className="text-xs font-bold text-sidebar-primary-foreground">
-                    {workspaceName.charAt(0).toUpperCase()}
+          {mounted ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 hover:bg-sidebar-accent rounded-md px-2 py-1 transition-colors">
+                  <div className="h-6 w-6 rounded-md bg-sidebar-primary flex items-center justify-center">
+                    <span className="text-xs font-bold text-sidebar-primary-foreground">
+                      {workspaceName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="text-sm font-semibold truncate max-w-[120px]">
+                    {workspaceName}
                   </span>
-                </div>
-                <span className="text-sm font-semibold truncate max-w-[120px]">
-                  {workspaceName}
+                  <ChevronDown className="h-3.5 w-3.5 text-sidebar-foreground/60" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard">
+                    <Home className="mr-2 h-4 w-4" />
+                    Back to Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Workspace settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setInviteModalOpen(true)}>
+                  <Users className="mr-2 h-4 w-4" />
+                  Invite people
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex items-center gap-2 px-2 py-1">
+              <div className="h-6 w-6 rounded-md bg-sidebar-primary flex items-center justify-center">
+                <span className="text-xs font-bold text-sidebar-primary-foreground">
+                  {workspaceName.charAt(0).toUpperCase()}
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 text-sidebar-foreground/60" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard">
-                  <Home className="mr-2 h-4 w-4" />
-                  Back to Dashboard
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                Workspace settings
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setInviteModalOpen(true)}>
-                <Users className="mr-2 h-4 w-4" />
-                Invite people
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={handleSignOut}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </div>
+              <span className="text-sm font-semibold truncate max-w-[120px]">
+                {workspaceName}
+              </span>
+            </div>
+          )}
           <Button
             variant="ghost"
             size="icon"

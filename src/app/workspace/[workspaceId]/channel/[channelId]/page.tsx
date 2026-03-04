@@ -78,6 +78,11 @@ export default function ChannelPage() {
         const msgs = (data.messages ?? []) as MessageData[];
         setMessages(msgs);
         cacheProfiles(msgs);
+
+        // Cache current user's profile for optimistic messages
+        if (data.currentProfile && data.userId) {
+          profileCacheRef.current.set(data.userId, data.currentProfile);
+        }
       } catch {
         // Network error
       }
@@ -147,23 +152,43 @@ export default function ChannelPage() {
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
-    if (!newMessage.trim() || !userId) return;
+    const content = newMessage.trim();
+    if (!content || !userId) return;
+
+    // Optimistic update: show the message immediately
+    const optimisticId = `optimistic-${Date.now()}`;
+    const optimisticMsg: MessageData = {
+      id: optimisticId,
+      content,
+      created_at: new Date().toISOString(),
+      user_id: userId,
+      profiles: profileCacheRef.current.get(userId) ?? null,
+    };
+    setMessages((prev) => [...prev, optimisticMsg]);
+    setNewMessage("");
 
     setSending(true);
     try {
-      await fetch(
+      const res = await fetch(
         `/api/workspaces/${workspaceId}/channels/${channelId}/messages`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: newMessage.trim() }),
+          body: JSON.stringify({ content }),
         }
       );
+      if (res.ok) {
+        const data = await res.json();
+        // Replace optimistic message with real one from server
+        setMessages((prev) =>
+          prev.map((m) => (m.id === optimisticId ? { ...optimisticMsg, id: data.message.id, created_at: data.message.created_at } : m))
+        );
+      }
     } catch {
-      // Network error
+      // Remove optimistic message on failure
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
     }
 
-    setNewMessage("");
     setSending(false);
   }
 

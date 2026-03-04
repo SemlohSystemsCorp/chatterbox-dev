@@ -39,6 +39,13 @@ export async function GET(
     .eq("id", channelId)
     .single();
 
+  // Get current user's profile (for optimistic message display)
+  const { data: currentProfile } = await admin
+    .from("profiles")
+    .select("full_name, display_name, avatar_url")
+    .eq("id", user.id)
+    .single();
+
   // Get messages with profiles
   const { data: messages } = await admin
     .from("messages")
@@ -53,6 +60,7 @@ export async function GET(
     channel: channel ?? null,
     messages: messages ?? [],
     userId: user.id,
+    currentProfile: currentProfile ?? null,
   });
 }
 
