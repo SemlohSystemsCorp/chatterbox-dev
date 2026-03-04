@@ -62,27 +62,18 @@ export default function WorkspaceLayout({
 
   useEffect(() => {
     async function load() {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const res = await fetch(`/api/workspaces/${workspaceId}/channels`);
+        if (res.status === 401) {
+          router.push("/login");
+          return;
+        }
+        if (!res.ok) return;
 
-      if (!user) {
-        router.push("/login");
-        return;
-      }
+        const data = await res.json();
 
-      setUserId(user.id);
-
-      // Get profile
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, display_name")
-        .eq("id", user.id)
-        .single();
-
-      if (profile) {
-        const name = profile.display_name || profile.full_name || "You";
+        setUserId(data.profile.id);
+        const name = data.profile.displayName;
         setUserName(name);
         setUserInitials(
           name
@@ -92,40 +83,11 @@ export default function WorkspaceLayout({
             .toUpperCase()
             .slice(0, 2)
         );
-      }
-
-      // Get workspace info
-      const { data: workspace } = await supabase
-        .from("workspaces")
-        .select("name")
-        .eq("id", workspaceId)
-        .single();
-
-      if (workspace) {
-        setWorkspaceName(workspace.name);
-      }
-
-      // Get user's role in this workspace
-      const { data: membership } = await supabase
-        .from("workspace_members")
-        .select("role")
-        .eq("workspace_id", workspaceId)
-        .eq("user_id", user.id)
-        .single();
-
-      if (membership) {
-        setUserRole(membership.role);
-      }
-
-      // Get channels for this workspace
-      const { data: channelData } = await supabase
-        .from("channels")
-        .select("id, name, type")
-        .eq("workspace_id", workspaceId)
-        .order("name");
-
-      if (channelData) {
-        setChannels(channelData as ChannelItem[]);
+        setWorkspaceName(data.workspace.name);
+        setUserRole(data.membership.role);
+        setChannels(data.channels as ChannelItem[]);
+      } catch {
+        // Network error
       }
     }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import {
   Hash,
@@ -46,47 +46,48 @@ export default function ChannelPage() {
   const [sending, setSending] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const profileCacheRef = useRef<Map<string, MessageData["profiles"]>>(new Map());
+
+  // Cache profiles from loaded messages so realtime handler can use them
+  const cacheProfiles = useCallback((msgs: MessageData[]) => {
+    for (const msg of msgs) {
+      if (msg.profiles) {
+        profileCacheRef.current.set(msg.user_id, msg.profiles);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     async function load() {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const res = await fetch(
+          `/api/workspaces/${workspaceId}/channels/${channelId}/messages`
+        );
+        if (!res.ok) return;
 
-      if (user) setUserId(user.id);
+        const data = await res.json();
 
-      // Get channel info
-      const { data: channel } = await supabase
-        .from("channels")
-        .select("name, type, description")
-        .eq("id", channelId)
-        .single();
+        setUserId(data.userId);
 
-      if (channel) {
-        setChannelName(channel.name);
-        setChannelType(channel.type);
-        setChannelDescription(channel.description);
-      }
+        if (data.channel) {
+          setChannelName(data.channel.name);
+          setChannelType(data.channel.type);
+          setChannelDescription(data.channel.description);
+        }
 
-      // Get messages with user profiles
-      const { data: messageData } = await supabase
-        .from("messages")
-        .select("id, content, created_at, user_id, profiles(full_name, display_name, avatar_url)")
-        .eq("channel_id", channelId)
-        .order("created_at", { ascending: true })
-        .limit(100);
-
-      if (messageData) {
-        setMessages(messageData as unknown as MessageData[]);
+        const msgs = (data.messages ?? []) as MessageData[];
+        setMessages(msgs);
+        cacheProfiles(msgs);
+      } catch {
+        // Network error
       }
     }
 
     load();
-  }, [channelId]);
+  }, [channelId, workspaceId, cacheProfiles]);
 
   useEffect(() => {
-    // Subscribe to new messages
+    // Subscribe to new messages via Supabase Realtime (WebSocket, not REST)
     const supabase = createClient();
     const subscription = supabase
       .channel(`messages:${channelId}`)
@@ -99,12 +100,24 @@ export default function ChannelPage() {
           filter: `channel_id=eq.${channelId}`,
         },
         async (payload) => {
-          // Fetch the profile for the new message
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("full_name, display_name, avatar_url")
-            .eq("id", payload.new.user_id)
-            .single();
+          // Try to get profile from cache first, then fetch via API
+          let profile = profileCacheRef.current.get(payload.new.user_id) ?? null;
+
+          if (!profile) {
+            try {
+              const res = await fetch(
+                `/api/workspaces/${workspaceId}/channels/${channelId}/messages`
+              );
+              if (res.ok) {
+                const data = await res.json();
+                const msgs = (data.messages ?? []) as MessageData[];
+                cacheProfiles(msgs);
+                profile = profileCacheRef.current.get(payload.new.user_id) ?? null;
+              }
+            } catch {
+              // Use null profile if fetch fails
+            }
+          }
 
           const msg: MessageData = {
             id: payload.new.id,
@@ -114,7 +127,11 @@ export default function ChannelPage() {
             profiles: profile,
           };
 
-          setMessages((prev) => [...prev, msg]);
+          setMessages((prev) => {
+            // Avoid duplicates (message may already be in list from initial load or prior event)
+            if (prev.some((m) => m.id === msg.id)) return prev;
+            return [...prev, msg];
+          });
         }
       )
       .subscribe();
@@ -122,7 +139,7 @@ export default function ChannelPage() {
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, [channelId]);
+  }, [channelId, workspaceId, cacheProfiles]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -133,13 +150,18 @@ export default function ChannelPage() {
     if (!newMessage.trim() || !userId) return;
 
     setSending(true);
-    const supabase = createClient();
-
-    await supabase.from("messages").insert({
-      channel_id: channelId,
-      user_id: userId,
-      content: newMessage.trim(),
-    });
+    try {
+      await fetch(
+        `/api/workspaces/${workspaceId}/channels/${channelId}/messages`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: newMessage.trim() }),
+        }
+      );
+    } catch {
+      // Network error
+    }
 
     setNewMessage("");
     setSending(false);

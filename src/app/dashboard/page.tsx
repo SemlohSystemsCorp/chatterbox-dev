@@ -13,7 +13,6 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
 
 interface WorkspaceWithRole {
   id: string;
@@ -31,48 +30,20 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function load() {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.push("/login");
-        return;
+      try {
+        const res = await fetch("/api/workspaces/list");
+        if (res.status === 401) {
+          router.push("/login");
+          return;
+        }
+        if (res.ok) {
+          const data = await res.json();
+          setUserName(data.profile.displayName);
+          setWorkspaces(data.workspaces);
+        }
+      } catch {
+        // Network error
       }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, display_name")
-        .eq("id", user.id)
-        .single();
-
-      setUserName(profile?.display_name || profile?.full_name || null);
-
-      const { data: memberships } = await supabase
-        .from("workspace_members")
-        .select("workspace_id, role, workspaces(id, name, slug, icon_url)")
-        .eq("user_id", user.id);
-
-      if (memberships && memberships.length > 0) {
-        const ws = memberships.map((m) => {
-          const w = m.workspaces as unknown as {
-            id: string;
-            name: string;
-            slug: string;
-            icon_url: string | null;
-          };
-          return {
-            id: w.id,
-            name: w.name,
-            slug: w.slug,
-            icon_url: w.icon_url,
-            role: m.role,
-          };
-        });
-        setWorkspaces(ws);
-      }
-
       setLoading(false);
     }
 
