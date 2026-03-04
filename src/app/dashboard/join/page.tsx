@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createClient } from "@/lib/supabase/client";
 
 export default function JoinWorkspacePage() {
   const router = useRouter();
@@ -29,104 +28,35 @@ export default function JoinWorkspacePage() {
     setLoading(true);
     setError(null);
 
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
-    // Try to find the invitation by token
-    const { data: invitation, error: invError } = await supabase
-      .from("workspace_invitations")
-      .select("id, workspace_id, role, expires_at, accepted_at")
-      .eq("token", inviteCode.trim())
-      .single();
-
-    if (invError || !invitation) {
-      setError("Invalid invite code. Please check and try again.");
-      setLoading(false);
-      return;
-    }
-
-    if (invitation.accepted_at) {
-      setError("This invite has already been used.");
-      setLoading(false);
-      return;
-    }
-
-    if (new Date(invitation.expires_at) < new Date()) {
-      setError("This invite has expired. Ask your admin for a new one.");
-      setLoading(false);
-      return;
-    }
-
-    // Check if already a member
-    const { data: existing } = await supabase
-      .from("workspace_members")
-      .select("id")
-      .eq("workspace_id", invitation.workspace_id)
-      .eq("user_id", user.id)
-      .single();
-
-    if (existing) {
-      router.push(`/workspace/${invitation.workspace_id}/channel/general`);
-      return;
-    }
-
-    // Join workspace
-    const { error: joinError } = await supabase
-      .from("workspace_members")
-      .insert({
-        workspace_id: invitation.workspace_id,
-        user_id: user.id,
-        role: invitation.role,
+    try {
+      const res = await fetch("/api/workspaces/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: inviteCode.trim() }),
       });
 
-    if (joinError) {
-      setError("Failed to join workspace. Please try again.");
+      if (res.status === 401) {
+        router.push("/login");
+        return;
+      }
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Failed to join workspace.");
+        setLoading(false);
+        return;
+      }
+
+      // Navigate to the workspace
+      if (data.channelId) {
+        router.push(`/workspace/${data.workspaceId}/channel/${data.channelId}`);
+      } else {
+        router.push(`/workspace/${data.workspaceId}/channel/general`);
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
       setLoading(false);
-      return;
-    }
-
-    // Mark invitation as accepted
-    await supabase
-      .from("workspace_invitations")
-      .update({ accepted_at: new Date().toISOString() })
-      .eq("id", invitation.id);
-
-    // Join all public channels
-    const { data: publicChannels } = await supabase
-      .from("channels")
-      .select("id")
-      .eq("workspace_id", invitation.workspace_id)
-      .eq("type", "public");
-
-    if (publicChannels && publicChannels.length > 0) {
-      await supabase.from("channel_members").insert(
-        publicChannels.map((ch) => ({
-          channel_id: ch.id,
-          user_id: user.id,
-        }))
-      );
-    }
-
-    const { data: generalChannel } = await supabase
-      .from("channels")
-      .select("id")
-      .eq("workspace_id", invitation.workspace_id)
-      .eq("name", "general")
-      .single();
-
-    if (generalChannel) {
-      router.push(
-        `/workspace/${invitation.workspace_id}/channel/${generalChannel.id}`
-      );
-    } else {
-      router.push(`/workspace/${invitation.workspace_id}/channel/general`);
     }
   }
 

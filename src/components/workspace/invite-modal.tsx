@@ -10,6 +10,7 @@ import {
   X,
   Link2,
   Clock,
+  KeyRound,
 } from "lucide-react";
 import {
   Dialog,
@@ -23,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 interface Invitation {
   id: string;
@@ -54,8 +56,11 @@ export function InviteModal({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
   const [revoking, setRevoking] = useState<string | null>(null);
+  const [shareMode, setShareMode] = useState<"link" | "code">("link");
+  const [generatingCode, setGeneratingCode] = useState(false);
 
   const isAdmin = ["owner", "admin"].includes(currentUserRole);
 
@@ -80,8 +85,36 @@ export function InviteModal({
       setError(null);
       setSuccess(null);
       setEmail("");
+      setCopiedLink(false);
+      setCopiedCode(false);
     }
   }, [open, fetchInvitations]);
+
+  async function ensureInviteToken(): Promise<string | null> {
+    const existing = invitations[0]?.token;
+    if (existing) return existing;
+
+    setGeneratingCode(true);
+    try {
+      const res = await fetch(`/api/workspaces/${workspaceId}/invite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: `invite-${Date.now()}@${workspaceName.toLowerCase().replace(/\s+/g, "")}.workspace`,
+          role: "member",
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        fetchInvitations();
+        return data.invitation.token;
+      }
+    } catch {
+      // fall through
+    }
+    setGeneratingCode(false);
+    return null;
+  }
 
   async function handleSendInvite(e: React.FormEvent) {
     e.preventDefault();
@@ -130,37 +163,22 @@ export function InviteModal({
   }
 
   async function copyInviteLink() {
-    const latestToken = invitations[0]?.token;
-    if (!latestToken) {
-      // Create a generic invitation to get a token
-      try {
-        const res = await fetch(`/api/workspaces/${workspaceId}/invite`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: `invite-link@${workspaceName.toLowerCase().replace(/\s+/g, "")}.workspace`,
-            role: "member",
-          }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const url = `${window.location.origin}/invite/${data.invitation.token}`;
-          await navigator.clipboard.writeText(url);
-          setCopied(true);
-          setTimeout(() => setCopied(false), 2000);
-          fetchInvitations();
-          return;
-        }
-      } catch {
-        // fall through
-      }
-      return;
-    }
-
-    const url = `${window.location.origin}/invite/${latestToken}`;
+    const token = await ensureInviteToken();
+    if (!token) return;
+    const url = `${window.location.origin}/invite/${token}`;
     await navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedLink(true);
+    setGeneratingCode(false);
+    setTimeout(() => setCopiedLink(false), 2000);
+  }
+
+  async function copyInviteCode() {
+    const token = await ensureInviteToken();
+    if (!token) return;
+    await navigator.clipboard.writeText(token);
+    setCopiedCode(true);
+    setGeneratingCode(false);
+    setTimeout(() => setCopiedCode(false), 2000);
   }
 
   function formatExpiry(dateStr: string) {
@@ -170,6 +188,8 @@ export function InviteModal({
     if (days === 1) return "1 day left";
     return `${days} days left`;
   }
+
+  const latestToken = invitations[0]?.token;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -182,34 +202,90 @@ export function InviteModal({
         </DialogHeader>
 
         <div className="space-y-4 pt-2 overflow-y-auto min-h-0">
-          {/* Invite link */}
+          {/* Share via link or code */}
           {isAdmin && (
             <div>
-              <label className="text-sm font-medium mb-2 block">
-                Invite link
-              </label>
-              <div className="flex gap-2">
-                <div className="flex-1 flex items-center gap-2 rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground truncate">
-                  <Link2 className="h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">
-                    {invitations[0]?.token
-                      ? `${window.location.origin}/invite/${invitations[0].token}`
-                      : "Generate an invite link..."}
-                  </span>
-                </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0"
-                  onClick={copyInviteLink}
-                >
-                  {copied ? (
-                    <Check className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
+              <div className="flex items-center gap-1 mb-2">
+                <button
+                  onClick={() => setShareMode("link")}
+                  className={cn(
+                    "text-sm font-medium px-2 py-1 rounded-md transition-colors",
+                    shareMode === "link"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
-                </Button>
+                >
+                  Invite link
+                </button>
+                <button
+                  onClick={() => setShareMode("code")}
+                  className={cn(
+                    "text-sm font-medium px-2 py-1 rounded-md transition-colors",
+                    shareMode === "code"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Use code
+                </button>
               </div>
+
+              {shareMode === "link" ? (
+                <div className="flex gap-2">
+                  <div className="flex-1 flex items-center gap-2 rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground truncate">
+                    <Link2 className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">
+                      {latestToken
+                        ? `${window.location.origin}/invite/${latestToken}`
+                        : "Generate an invite link..."}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
+                    onClick={copyInviteLink}
+                    disabled={generatingCode}
+                  >
+                    {generatingCode ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : copiedLink ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex gap-2">
+                    <div className="flex-1 flex items-center gap-2 rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground font-mono truncate">
+                      <KeyRound className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">
+                        {latestToken || "Generate a code..."}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="shrink-0"
+                      onClick={copyInviteCode}
+                      disabled={generatingCode}
+                    >
+                      {generatingCode ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : copiedCode ? (
+                        <Check className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    Share this code — paste it at <strong>Dashboard &rarr; Join workspace</strong>
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
