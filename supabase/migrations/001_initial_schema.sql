@@ -1,404 +1,364 @@
--- Chatterbox Initial Schema
--- Run this migration in your Supabase SQL editor
+-- ============================================================
+-- Chatterbox — Full database schema
+-- ============================================================
 
--- Enable required extensions
+-- Enable UUID generation
 create extension if not exists "uuid-ossp";
 
 -- ============================================================
--- TABLES (created first, RLS policies with cross-references added after)
--- ============================================================
-
 -- PROFILES
+-- ============================================================
 create table public.profiles (
-  id uuid references auth.users on delete cascade primary key,
-  email text not null,
-  full_name text,
-  display_name text,
-  avatar_url text,
-  phone text,
-  job_title text,
-  company text,
-  timezone text,
-  locale text default 'en',
-  bio text,
-  website text,
-  auth_provider text,
-  status text,
-  status_emoji text,
-  email_verified boolean default false not null,
-  onboarding_completed boolean default false not null,
-  last_seen_at timestamptz,
-  created_at timestamptz default now() not null,
-  updated_at timestamptz default now() not null
+  id          uuid primary key references auth.users(id) on delete cascade,
+  email       text not null unique,
+  display_name text not null,
+  username    text not null unique,
+  avatar_url  text,
+  date_of_birth date,
+  status      text not null default 'online' check (status in ('online','idle','dnd','offline')),
+  custom_status text,
+  bio         text,
+  plan        text not null default 'free' check (plan in ('free','pro','enterprise')),
+  stripe_customer_id text,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
 );
 
--- VERIFICATION CODES
-create table public.verification_codes (
-  id uuid default uuid_generate_v4() primary key,
-  user_id uuid references auth.users(id) on delete cascade not null,
-  email text not null,
-  code text not null,
-  expires_at timestamptz not null,
-  used_at timestamptz,
-  created_at timestamptz default now() not null
-);
-
-create index idx_verification_codes_user_id on public.verification_codes(user_id);
-create index idx_verification_codes_email_code on public.verification_codes(email, code);
-
--- WORKSPACES
-create table public.workspaces (
-  id uuid default uuid_generate_v4() primary key,
-  name text not null,
-  slug text not null unique,
-  description text,
-  icon_url text,
-  created_by uuid references public.profiles(id) on delete set null,
-  created_at timestamptz default now() not null,
-  updated_at timestamptz default now() not null
-);
-
--- WORKSPACE MEMBERS
-create table public.workspace_members (
-  id uuid default uuid_generate_v4() primary key,
-  workspace_id uuid references public.workspaces(id) on delete cascade not null,
-  user_id uuid references public.profiles(id) on delete cascade not null,
-  role text not null default 'member' check (role in ('owner', 'admin', 'member', 'guest')),
-  joined_at timestamptz default now() not null,
-  unique(workspace_id, user_id)
-);
-
--- CHANNELS
-create table public.channels (
-  id uuid default uuid_generate_v4() primary key,
-  workspace_id uuid references public.workspaces(id) on delete cascade not null,
-  name text not null,
-  description text,
-  type text not null default 'public' check (type in ('public', 'private', 'dm')),
-  created_by uuid references public.profiles(id) on delete set null,
-  created_at timestamptz default now() not null,
-  updated_at timestamptz default now() not null
-);
-
--- CHANNEL MEMBERS
-create table public.channel_members (
-  id uuid default uuid_generate_v4() primary key,
-  channel_id uuid references public.channels(id) on delete cascade not null,
-  user_id uuid references public.profiles(id) on delete cascade not null,
-  joined_at timestamptz default now() not null,
-  last_read_at timestamptz,
-  unique(channel_id, user_id)
-);
-
--- MESSAGES
-create table public.messages (
-  id uuid default uuid_generate_v4() primary key,
-  channel_id uuid references public.channels(id) on delete cascade not null,
-  user_id uuid references public.profiles(id) on delete set null,
-  content text not null,
-  parent_id uuid references public.messages(id) on delete cascade,
-  is_edited boolean default false not null,
-  created_at timestamptz default now() not null,
-  updated_at timestamptz default now() not null
-);
-
-create index idx_messages_channel_id on public.messages(channel_id);
-create index idx_messages_parent_id on public.messages(parent_id);
-create index idx_messages_created_at on public.messages(created_at);
-
--- REACTIONS
-create table public.reactions (
-  id uuid default uuid_generate_v4() primary key,
-  message_id uuid references public.messages(id) on delete cascade not null,
-  user_id uuid references public.profiles(id) on delete cascade not null,
-  emoji text not null,
-  created_at timestamptz default now() not null,
-  unique(message_id, user_id, emoji)
-);
-
--- FILE ATTACHMENTS
-create table public.files (
-  id uuid default uuid_generate_v4() primary key,
-  message_id uuid references public.messages(id) on delete cascade not null,
-  user_id uuid references public.profiles(id) on delete set null,
-  file_name text not null,
-  file_url text not null,
-  file_type text not null,
-  file_size bigint not null,
-  created_at timestamptz default now() not null
-);
-
--- WORKSPACE INVITATIONS
-create table public.workspace_invitations (
-  id uuid default uuid_generate_v4() primary key,
-  workspace_id uuid references public.workspaces(id) on delete cascade not null,
-  email text not null,
-  role text not null default 'member' check (role in ('owner', 'admin', 'member', 'guest')),
-  invited_by uuid references public.profiles(id) on delete set null,
-  token uuid default uuid_generate_v4() not null unique,
-  expires_at timestamptz not null,
-  accepted_at timestamptz,
-  created_at timestamptz default now() not null
-);
-
--- ============================================================
--- ENABLE RLS ON ALL TABLES
--- ============================================================
 alter table public.profiles enable row level security;
-alter table public.verification_codes enable row level security;
-alter table public.workspaces enable row level security;
-alter table public.workspace_members enable row level security;
-alter table public.channels enable row level security;
-alter table public.channel_members enable row level security;
-alter table public.messages enable row level security;
-alter table public.reactions enable row level security;
-alter table public.files enable row level security;
-alter table public.workspace_invitations enable row level security;
 
--- ============================================================
--- RLS POLICIES (all tables exist, safe to cross-reference)
--- ============================================================
-
--- Profiles
 create policy "Public profiles are viewable by everyone"
   on public.profiles for select using (true);
 
 create policy "Users can update own profile"
   on public.profiles for update using (auth.uid() = id);
 
-create policy "Users can insert own profile"
-  on public.profiles for insert with check (auth.uid() = id);
+create policy "Service role can insert profiles"
+  on public.profiles for insert with check (true);
 
--- Verification Codes
-create policy "Users can view own verification codes"
-  on public.verification_codes for select using (auth.uid() = user_id);
+-- ============================================================
+-- SERVERS (table only — RLS added after members)
+-- ============================================================
+create table public.servers (
+  id          uuid primary key default uuid_generate_v4(),
+  name        text not null,
+  description text,
+  icon_url    text,
+  banner_url  text,
+  owner_id    uuid not null references public.profiles(id) on delete cascade,
+  invite_code text not null unique default substr(md5(random()::text), 1, 8),
+  is_public   boolean not null default false,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
 
-create policy "Service role can manage verification codes"
-  on public.verification_codes for all using (true);
+alter table public.servers enable row level security;
 
--- Workspaces
-create policy "Workspace members can view workspace"
-  on public.workspaces for select using (
-    exists (
-      select 1 from public.workspace_members
-      where workspace_id = workspaces.id and user_id = auth.uid()
-    )
-  );
+-- ============================================================
+-- MEMBERS (must exist before server/channel/category RLS)
+-- ============================================================
+create table public.members (
+  id        uuid primary key default uuid_generate_v4(),
+  server_id uuid not null references public.servers(id) on delete cascade,
+  user_id   uuid not null references public.profiles(id) on delete cascade,
+  role      text not null default 'member' check (role in ('owner','admin','moderator','member')),
+  nickname  text,
+  joined_at timestamptz not null default now(),
+  unique(server_id, user_id)
+);
 
-create policy "Authenticated users can create workspaces"
-  on public.workspaces for insert with check (auth.uid() = created_by);
+alter table public.members enable row level security;
 
-create policy "Workspace admins can update workspace"
-  on public.workspaces for update using (
-    exists (
-      select 1 from public.workspace_members
-      where workspace_id = workspaces.id
-        and user_id = auth.uid()
-        and role in ('owner', 'admin')
-    )
-  );
-
--- Workspace Members
-create policy "Members can view workspace members"
-  on public.workspace_members for select using (
-    exists (
-      select 1 from public.workspace_members wm
-      where wm.workspace_id = workspace_members.workspace_id
-        and wm.user_id = auth.uid()
-    )
-  );
-
-create policy "Admins can manage workspace members"
-  on public.workspace_members for insert with check (
-    exists (
-      select 1 from public.workspace_members wm
-      where wm.workspace_id = workspace_members.workspace_id
-        and wm.user_id = auth.uid()
-        and wm.role in ('owner', 'admin')
-    )
-    or auth.uid() = user_id -- Allow self-join via invitation
-  );
-
-create policy "Admins can remove workspace members"
-  on public.workspace_members for delete using (
-    exists (
-      select 1 from public.workspace_members wm
-      where wm.workspace_id = workspace_members.workspace_id
-        and wm.user_id = auth.uid()
-        and wm.role in ('owner', 'admin')
-    )
-    or auth.uid() = user_id -- Allow self-removal
-  );
-
--- Channels
-create policy "Public channel members can view channels"
-  on public.channels for select using (
-    type = 'public' and exists (
-      select 1 from public.workspace_members
-      where workspace_id = channels.workspace_id and user_id = auth.uid()
-    )
+-- ============================================================
+-- SERVER RLS (now that members exists)
+-- ============================================================
+create policy "Servers visible to members"
+  on public.servers for select using (
+    is_public = true
     or exists (
-      select 1 from public.channel_members
-      where channel_id = channels.id and user_id = auth.uid()
+      select 1 from public.members m where m.server_id = id and m.user_id = auth.uid()
     )
   );
 
-create policy "Workspace members can create channels"
-  on public.channels for insert with check (
+create policy "Server owners can update"
+  on public.servers for update using (owner_id = auth.uid());
+
+create policy "Authenticated users can create servers"
+  on public.servers for insert with check (auth.uid() = owner_id);
+
+create policy "Server owners can delete"
+  on public.servers for delete using (owner_id = auth.uid());
+
+-- ============================================================
+-- MEMBERS RLS
+-- ============================================================
+create policy "Members visible to server members"
+  on public.members for select using (
     exists (
-      select 1 from public.workspace_members
-      where workspace_id = channels.workspace_id and user_id = auth.uid()
+      select 1 from public.members m2 where m2.server_id = members.server_id and m2.user_id = auth.uid()
     )
   );
 
--- Channel Members
-create policy "Channel members can view membership"
-  on public.channel_members for select using (
+create policy "Users can join servers"
+  on public.members for insert with check (auth.uid() = user_id);
+
+create policy "Users can leave servers"
+  on public.members for delete using (auth.uid() = user_id);
+
+create policy "Admins can manage members"
+  on public.members for update using (
     exists (
-      select 1 from public.channel_members cm
-      where cm.channel_id = channel_members.channel_id
-        and cm.user_id = auth.uid()
+      select 1 from public.members m
+      where m.server_id = members.server_id
+        and m.user_id = auth.uid()
+        and m.role in ('owner','admin')
     )
   );
 
-create policy "Channel members can join public channels"
-  on public.channel_members for insert with check (
-    auth.uid() = user_id
+-- ============================================================
+-- CATEGORIES
+-- ============================================================
+create table public.categories (
+  id         uuid primary key default uuid_generate_v4(),
+  server_id  uuid not null references public.servers(id) on delete cascade,
+  name       text not null,
+  position   int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+alter table public.categories enable row level security;
+
+create policy "Categories visible to server members"
+  on public.categories for select using (
+    exists (
+      select 1 from public.members m where m.server_id = categories.server_id and m.user_id = auth.uid()
+    )
   );
 
--- Messages
-create policy "Channel members can view messages"
+create policy "Admins can manage categories"
+  on public.categories for all using (
+    exists (
+      select 1 from public.members m
+      where m.server_id = categories.server_id
+        and m.user_id = auth.uid()
+        and m.role in ('owner','admin')
+    )
+  );
+
+-- ============================================================
+-- CHANNELS
+-- ============================================================
+create table public.channels (
+  id          uuid primary key default uuid_generate_v4(),
+  server_id   uuid not null references public.servers(id) on delete cascade,
+  name        text not null,
+  description text,
+  type        text not null default 'text' check (type in ('text','voice','announcement','forum','stage')),
+  position    int not null default 0,
+  category_id uuid references public.categories(id) on delete set null,
+  is_private  boolean not null default false,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+alter table public.channels enable row level security;
+
+create policy "Channels visible to server members"
+  on public.channels for select using (
+    exists (
+      select 1 from public.members m where m.server_id = channels.server_id and m.user_id = auth.uid()
+    )
+  );
+
+create policy "Admins can manage channels"
+  on public.channels for all using (
+    exists (
+      select 1 from public.members m
+      where m.server_id = channels.server_id
+        and m.user_id = auth.uid()
+        and m.role in ('owner','admin')
+    )
+  );
+
+-- ============================================================
+-- MESSAGES
+-- ============================================================
+create table public.messages (
+  id          uuid primary key default uuid_generate_v4(),
+  channel_id  uuid not null references public.channels(id) on delete cascade,
+  author_id   uuid not null references public.profiles(id) on delete cascade,
+  content     text not null,
+  edited_at   timestamptz,
+  reply_to_id uuid references public.messages(id) on delete set null,
+  attachments jsonb,
+  reactions   jsonb,
+  pinned      boolean not null default false,
+  created_at  timestamptz not null default now()
+);
+
+alter table public.messages enable row level security;
+
+create policy "Messages visible to channel members"
   on public.messages for select using (
     exists (
-      select 1 from public.channel_members
-      where channel_id = messages.channel_id and user_id = auth.uid()
+      select 1
+      from public.channels c
+      join public.members m on m.server_id = c.server_id
+      where c.id = messages.channel_id and m.user_id = auth.uid()
     )
   );
 
-create policy "Channel members can send messages"
+create policy "Members can send messages"
   on public.messages for insert with check (
-    auth.uid() = user_id
+    auth.uid() = author_id
     and exists (
-      select 1 from public.channel_members
-      where channel_id = messages.channel_id and user_id = auth.uid()
+      select 1
+      from public.channels c
+      join public.members m on m.server_id = c.server_id
+      where c.id = messages.channel_id and m.user_id = auth.uid()
     )
   );
 
-create policy "Users can edit own messages"
-  on public.messages for update using (auth.uid() = user_id);
+create policy "Authors can edit own messages"
+  on public.messages for update using (auth.uid() = author_id);
 
-create policy "Users can delete own messages"
-  on public.messages for delete using (auth.uid() = user_id);
-
--- Reactions
-create policy "Channel members can view reactions"
-  on public.reactions for select using (
-    exists (
-      select 1 from public.messages m
-      join public.channel_members cm on cm.channel_id = m.channel_id
-      where m.id = reactions.message_id and cm.user_id = auth.uid()
-    )
-  );
-
-create policy "Users can add reactions"
-  on public.reactions for insert with check (auth.uid() = user_id);
-
-create policy "Users can remove own reactions"
-  on public.reactions for delete using (auth.uid() = user_id);
-
--- Files
-create policy "Channel members can view files"
-  on public.files for select using (
-    exists (
-      select 1 from public.messages m
-      join public.channel_members cm on cm.channel_id = m.channel_id
-      where m.id = files.message_id and cm.user_id = auth.uid()
-    )
-  );
-
-create policy "Users can upload files"
-  on public.files for insert with check (auth.uid() = user_id);
-
--- Workspace Invitations
-create policy "Admins can view invitations"
-  on public.workspace_invitations for select using (
-    exists (
-      select 1 from public.workspace_members
-      where workspace_id = workspace_invitations.workspace_id
-        and user_id = auth.uid()
-        and role in ('owner', 'admin')
-    )
-  );
-
-create policy "Admins can create invitations"
-  on public.workspace_invitations for insert with check (
-    exists (
-      select 1 from public.workspace_members
-      where workspace_id = workspace_invitations.workspace_id
-        and user_id = auth.uid()
-        and role in ('owner', 'admin')
-    )
-  );
+create policy "Authors can delete own messages"
+  on public.messages for delete using (auth.uid() = author_id);
 
 -- ============================================================
--- FUNCTIONS & TRIGGERS
+-- DIRECT MESSAGES
 -- ============================================================
+create table public.direct_messages (
+  id          uuid primary key default uuid_generate_v4(),
+  sender_id   uuid not null references public.profiles(id) on delete cascade,
+  receiver_id uuid not null references public.profiles(id) on delete cascade,
+  content     text not null,
+  attachments jsonb,
+  read_at     timestamptz,
+  created_at  timestamptz not null default now()
+);
 
--- Auto-create profile on signup
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-  insert into public.profiles (
-    id, email, full_name, display_name, avatar_url, phone,
-    job_title, company, timezone, auth_provider
-  )
-  values (
-    new.id,
-    new.email,
-    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
-    new.raw_user_meta_data->>'display_name',
-    new.raw_user_meta_data->>'avatar_url',
-    new.raw_user_meta_data->>'phone',
-    new.raw_user_meta_data->>'job_title',
-    new.raw_user_meta_data->>'company',
-    coalesce(new.raw_user_meta_data->>'timezone', 'UTC'),
-    coalesce(new.raw_user_meta_data->>'auth_provider', 'email')
+alter table public.direct_messages enable row level security;
+
+create policy "Users can see own DMs"
+  on public.direct_messages for select using (
+    auth.uid() = sender_id or auth.uid() = receiver_id
   );
-  return new;
-end;
-$$ language plpgsql security definer;
 
-create or replace trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
+create policy "Users can send DMs"
+  on public.direct_messages for insert with check (auth.uid() = sender_id);
 
--- Updated_at trigger
-create or replace function public.update_updated_at()
-returns trigger as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$ language plpgsql;
+create policy "Users can update own DMs"
+  on public.direct_messages for update using (auth.uid() = sender_id or auth.uid() = receiver_id);
 
-create trigger update_profiles_updated_at
-  before update on public.profiles
-  for each row execute function public.update_updated_at();
+-- ============================================================
+-- FRIENDS
+-- ============================================================
+create table public.friends (
+  id        uuid primary key default uuid_generate_v4(),
+  user_id   uuid not null references public.profiles(id) on delete cascade,
+  friend_id uuid not null references public.profiles(id) on delete cascade,
+  status    text not null default 'pending' check (status in ('pending','accepted','blocked')),
+  created_at timestamptz not null default now(),
+  unique(user_id, friend_id)
+);
 
-create trigger update_workspaces_updated_at
-  before update on public.workspaces
-  for each row execute function public.update_updated_at();
+alter table public.friends enable row level security;
 
-create trigger update_channels_updated_at
-  before update on public.channels
-  for each row execute function public.update_updated_at();
+create policy "Users can see own friends"
+  on public.friends for select using (auth.uid() = user_id or auth.uid() = friend_id);
 
-create trigger update_messages_updated_at
-  before update on public.messages
-  for each row execute function public.update_updated_at();
+create policy "Users can send friend requests"
+  on public.friends for insert with check (auth.uid() = user_id);
+
+create policy "Users can update friend status"
+  on public.friends for update using (auth.uid() = user_id or auth.uid() = friend_id);
+
+create policy "Users can remove friends"
+  on public.friends for delete using (auth.uid() = user_id or auth.uid() = friend_id);
+
+-- ============================================================
+-- VERIFICATION CODES (for email OTP)
+-- ============================================================
+create table public.verification_codes (
+  id         uuid primary key default uuid_generate_v4(),
+  email      text not null unique,
+  code       text not null,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+
+-- No RLS — only accessed by service role from API routes
+alter table public.verification_codes enable row level security;
+
+-- ============================================================
+-- INDEXES
+-- ============================================================
+create index idx_members_user_id on public.members(user_id);
+create index idx_members_server_id on public.members(server_id);
+create index idx_channels_server_id on public.channels(server_id);
+create index idx_messages_channel_id on public.messages(channel_id);
+create index idx_messages_created_at on public.messages(created_at);
+create index idx_direct_messages_sender on public.direct_messages(sender_id);
+create index idx_direct_messages_receiver on public.direct_messages(receiver_id);
+create index idx_friends_user_id on public.friends(user_id);
+create index idx_friends_friend_id on public.friends(friend_id);
+create index idx_servers_invite_code on public.servers(invite_code);
+create index idx_profiles_username on public.profiles(username);
+create index idx_verification_codes_email on public.verification_codes(email);
 
 -- ============================================================
 -- REALTIME
 -- ============================================================
 alter publication supabase_realtime add table public.messages;
-alter publication supabase_realtime add table public.reactions;
+alter publication supabase_realtime add table public.direct_messages;
+alter publication supabase_realtime add table public.members;
+
+-- ============================================================
+-- FUNCTIONS
+-- ============================================================
+
+-- Auto-create a #general channel when a server is created
+create or replace function public.handle_new_server()
+returns trigger as $$
+begin
+  -- Add owner as member
+  insert into public.members (server_id, user_id, role)
+  values (new.id, new.owner_id, 'owner');
+
+  -- Create default category
+  insert into public.categories (id, server_id, name, position)
+  values (uuid_generate_v4(), new.id, 'Text Channels', 0);
+
+  -- Create #general channel
+  insert into public.channels (server_id, name, description, type, position, category_id)
+  select new.id, 'general', 'General discussion', 'text', 0, c.id
+  from public.categories c where c.server_id = new.id limit 1;
+
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_server_created
+  after insert on public.servers
+  for each row execute function public.handle_new_server();
+
+-- Auto-update updated_at timestamp
+create or replace function public.handle_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end; 
+$$ language plpgsql;
+
+create trigger set_profiles_updated_at
+  before update on public.profiles
+  for each row execute function public.handle_updated_at();
+
+create trigger set_servers_updated_at
+  before update on public.servers
+  for each row execute function public.handle_updated_at();
+
+create trigger set_channels_updated_at
+  before update on public.channels
+  for each row execute function public.handle_updated_at();

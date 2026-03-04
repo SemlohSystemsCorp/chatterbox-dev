@@ -1,61 +1,63 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
-
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const { userId, email, code } = await request.json();
+    const { email, code } = await req.json();
 
-    if (!userId || !email || !code) {
+    if (!email || !code) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Email and code are required" },
         { status: 400 }
       );
     }
 
-    const supabase = getAdminClient();
+    const supabase = createAdminClient();
 
-    // Find matching unused code
-    const { data: verification, error: fetchError } = await supabase
+    // Look up the code
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: stored, error: lookupError } = await (supabase as any)
       .from("verification_codes")
       .select("*")
-      .eq("user_id", userId)
       .eq("email", email)
       .eq("code", code)
-      .is("used_at", null)
-      .gt("expires_at", new Date().toISOString())
-      .order("created_at", { ascending: false })
-      .limit(1)
       .single();
 
-    if (fetchError || !verification) {
+    if (lookupError || !stored) {
+      return NextResponse.json({ error: "Invalid code" }, { status: 400 });
+    }
+
+    // Check expiry
+    if (new Date(stored.expires_at) < new Date()) {
+      return NextResponse.json({ error: "Code has expired" }, { status: 400 });
+    }
+
+    // Delete used code
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("verification_codes").delete().eq("email", email);
+
+    // Generate a session for the user
+    const { data: linkData, error: linkError } =
+      await supabase.auth.admin.generateLink({
+        type: "magiclink",
+        email,
+      });
+
+    if (linkError || !linkData) {
       return NextResponse.json(
-        { error: "Invalid or expired verification code" },
-        { status: 400 }
+        { error: "Failed to create session" },
+        { status: 500 }
       );
     }
 
-    // Mark code as used
-    await supabase
-      .from("verification_codes")
-      .update({ used_at: new Date().toISOString() })
-      .eq("id", verification.id);
+    // Return the token_hash so the client can exchange it for a session
+    const url = new URL(linkData.properties.action_link);
+    const tokenHash = url.searchParams.get("token_hash");
+    const type = url.searchParams.get("type");
 
-    // Mark profile as email verified
-    await supabase
-      .from("profiles")
-      .update({ email_verified: true })
-      .eq("id", userId);
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ tokenHash, type });
   } catch (err) {
-    console.error("Verification error:", err);
+    console.error("Verify code error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

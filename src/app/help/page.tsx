@@ -1,133 +1,95 @@
 import Link from "next/link";
-import {
-  ArrowLeft,
-  Search,
-  Rocket,
-  Hash,
-  MessageSquare,
-  Puzzle,
-  Shield,
-  CreditCard,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Navbar } from "@/components/marketing/navbar";
+import { Footer } from "@/components/marketing/footer";
 
-const topics = [
+const categories = [
   {
-    icon: Rocket,
     title: "Getting Started",
-    description:
-      "Learn the basics of setting up your workspace, inviting team members, and sending your first message.",
+    articles: [
+      { title: "Creating your account", description: "Sign up and verify your email" },
+      { title: "Setting up your first server", description: "Create a workspace and invite your team" },
+      { title: "Understanding channels", description: "Text, voice, and forum channels explained" },
+      { title: "Customizing your profile", description: "Username, avatar, and status" },
+    ],
   },
   {
-    icon: Hash,
-    title: "Channels",
-    description:
-      "Create and manage channels, set permissions, pin messages, and organize conversations by topic.",
+    title: "Account & Security",
+    articles: [
+      { title: "Changing your password", description: "Reset or update your password" },
+      { title: "Two-factor authentication", description: "Add an extra layer of security" },
+      { title: "Deleting your account", description: "Permanently remove your data" },
+      { title: "Managing email notifications", description: "Control what emails you receive" },
+    ],
   },
   {
-    icon: MessageSquare,
-    title: "Messaging",
-    description:
-      "Send messages, share files, use threads, react with emoji, and format text with markdown.",
+    title: "Servers & Channels",
+    articles: [
+      { title: "Creating and managing servers", description: "Server settings and customization" },
+      { title: "Roles and permissions", description: "Control who can do what" },
+      { title: "Invite links", description: "Share your server with others" },
+      { title: "Channel types", description: "Text, voice, forum, and announcements" },
+    ],
   },
   {
-    icon: Puzzle,
-    title: "Integrations",
-    description:
-      "Connect Chatterbox with the tools you already use, including GitHub, Jira, Google Drive, and more.",
-  },
-  {
-    icon: Shield,
-    title: "Security",
-    description:
-      "Understand our encryption, manage two-factor authentication, and configure your organization's security policies.",
-  },
-  {
-    icon: CreditCard,
-    title: "Billing",
-    description:
-      "Manage your subscription, update payment methods, download invoices, and understand your usage.",
+    title: "Billing & Plans",
+    articles: [
+      { title: "Free vs. Pro vs. Enterprise", description: "Compare plans and features" },
+      { title: "Managing your subscription", description: "Upgrade, downgrade, or cancel" },
+      { title: "Student and nonprofit discounts", description: "Apply for special pricing" },
+      { title: "Payment methods", description: "Cards, invoices, and billing history" },
+    ],
   },
 ];
 
 export default function HelpPage() {
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-3xl mx-auto px-4 py-16">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-12">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <span className="text-lg font-bold">Chatterbox</span>
-        </div>
+      <Navbar />
 
-        <h1 className="text-3xl font-bold tracking-tight mb-4">Help Center</h1>
-        <p className="text-muted-foreground mb-8">
-          Find answers, guides, and resources to help you get the most out of
-          Chatterbox.
-        </p>
-
-        {/* Search Bar */}
-        <div className="relative mb-12">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search for help articles..."
-            className="pl-10"
-          />
-        </div>
-
-        {/* Topics Grid */}
-        <section className="mb-12">
-          <h2 className="text-xl font-semibold mb-6">Common Topics</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {topics.map((topic) => {
-              const Icon = topic.icon;
-              return (
-                <div
-                  key={topic.title}
-                  className="rounded-lg border border-border p-6 hover:border-primary/50 transition-colors"
-                >
-                  <Icon className="h-6 w-6 text-primary mb-3" />
-                  <h3 className="font-semibold mb-2">{topic.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {topic.description}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Contact Support */}
-        <section className="rounded-lg border border-border p-8 text-center mb-12">
-          <h2 className="text-xl font-semibold mb-2">
-            Can&apos;t find what you&apos;re looking for?
-          </h2>
-          <p className="text-muted-foreground mb-4">
-            Our support team is here to help. Reach out and we will get back to
-            you within 24 hours.
-          </p>
-          <Button asChild>
-            <a href="mailto:support@chatterbox.com">Contact Support</a>
-          </Button>
-        </section>
-
-        {/* Footer */}
-        <div className="pt-6 border-t border-border">
-          <p className="text-sm text-muted-foreground">
-            Want to learn more about Chatterbox?{" "}
-            <Link href="/about" className="text-primary hover:underline">
-              Visit our About page
-            </Link>
-            .
+      <section className="mx-auto max-w-4xl px-6 py-20">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold tracking-tight">Help Center</h1>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Find answers to common questions about Chatterbox.
           </p>
         </div>
-      </div>
+
+        <div className="mt-16 grid gap-8 md:grid-cols-2">
+          {categories.map((category) => (
+            <div key={category.title} className="rounded-xl border bg-card p-6">
+              <h2 className="mb-4 font-semibold">{category.title}</h2>
+              <div className="space-y-3">
+                {category.articles.map((article) => (
+                  <div
+                    key={article.title}
+                    className="border-b border-border/50 pb-3 last:border-0 last:pb-0"
+                  >
+                    <p className="text-sm font-medium">{article.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {article.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-16 rounded-xl border bg-muted/30 p-8 text-center">
+          <h2 className="text-lg font-semibold">Still need help?</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Can&apos;t find what you&apos;re looking for? Reach out to our team.
+          </p>
+          <Link
+            href="/contact"
+            className="mt-4 inline-block text-sm font-medium text-primary underline underline-offset-4"
+          >
+            Contact support
+          </Link>
+        </div>
+      </section>
+
+      <Footer />
     </div>
   );
 }

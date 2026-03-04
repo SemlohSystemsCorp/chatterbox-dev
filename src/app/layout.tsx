@@ -1,24 +1,44 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import { Toaster } from "sonner";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Chatterbox — Enterprise Communications",
+  title: {
+    default: "Chatterbox — Where Teams Connect",
+    template: "%s | Chatterbox",
+  },
   description:
-    "The modern communications platform built for teams that demand more. Real-time messaging, channels, threads, and seamless collaboration.",
-  keywords: ["chat", "messaging", "team communication", "enterprise", "collaboration"],
+    "Professional team communication with the power of real-time chat. Servers, channels, voice, video, and more — built for teams that mean business.",
+  metadataBase: new URL("https://georgesprojects.com"),
+  icons: {
+    icon: "/favicon.svg",
+  },
+  openGraph: {
+    title: "Chatterbox — Where Teams Connect",
+    description:
+      "Professional team communication with the power of real-time chat.",
+    url: "https://georgesprojects.com",
+    siteName: "Chatterbox",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Chatterbox — Where Teams Connect",
+    description:
+      "Professional team communication with the power of real-time chat.",
+  },
 };
 
 export default function RootLayout({
@@ -29,15 +49,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
+        className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
-          enableSystem
+          defaultTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
-          <TooltipProvider>{children}</TooltipProvider>
+          {children}
+          <Toaster richColors position="bottom-right" theme="light" />
         </ThemeProvider>
       </body>
     </html>
