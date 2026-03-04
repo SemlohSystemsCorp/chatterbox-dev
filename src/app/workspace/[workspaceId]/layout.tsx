@@ -32,6 +32,7 @@ import { createClient } from "@/lib/supabase/client";
 import { WorkspaceProvider } from "@/contexts/workspace-context";
 import { InviteModal } from "@/components/workspace/invite-modal";
 import { MembersPanel } from "@/components/workspace/members-panel";
+import { CreateChannelModal } from "@/components/workspace/create-channel-modal";
 
 interface ChannelItem {
   id: string;
@@ -60,6 +61,7 @@ export default function WorkspaceLayout({
   const [dmsOpen, setDmsOpen] = useState(true);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [membersPanelOpen, setMembersPanelOpen] = useState(false);
+  const [createChannelOpen, setCreateChannelOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -186,11 +188,11 @@ export default function WorkspaceLayout({
         <ScrollArea className="flex-1 px-2">
           {/* Channels */}
           <div className="py-2">
-            <button
-              onClick={() => setChannelsOpen(!channelsOpen)}
-              className="flex items-center justify-between w-full px-2 py-1 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50 hover:text-sidebar-foreground/70"
-            >
-              <div className="flex items-center gap-1">
+            <div className="flex items-center justify-between w-full px-2 py-1">
+              <button
+                onClick={() => setChannelsOpen(!channelsOpen)}
+                className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50 hover:text-sidebar-foreground/70"
+              >
                 <ChevronDown
                   className={cn(
                     "h-3 w-3 transition-transform",
@@ -198,9 +200,14 @@ export default function WorkspaceLayout({
                   )}
                 />
                 Channels
-              </div>
-              <Plus className="h-3.5 w-3.5 hover:text-sidebar-foreground" />
-            </button>
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setCreateChannelOpen(true); }}
+                className="text-sidebar-foreground/50 hover:text-sidebar-foreground"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+            </div>
             {channelsOpen && (
               <div className="mt-1 space-y-0.5">
                 {regularChannels.length > 0 ? (
@@ -328,6 +335,14 @@ export default function WorkspaceLayout({
         currentUserRole={userRole}
         open={membersPanelOpen}
         onOpenChange={setMembersPanelOpen}
+      />
+      <CreateChannelModal
+        workspaceId={workspaceId}
+        open={createChannelOpen}
+        onOpenChange={setCreateChannelOpen}
+        onChannelCreated={(channel) => {
+          setChannels((prev) => [...prev, channel as ChannelItem]);
+        }}
       />
     </div>
   );

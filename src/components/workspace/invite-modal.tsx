@@ -173,7 +173,7 @@ export function InviteModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>Invite people</DialogTitle>
           <DialogDescription>
@@ -181,7 +181,7 @@ export function InviteModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 pt-2">
+        <div className="space-y-4 pt-2 overflow-y-auto min-h-0">
           {/* Invite link */}
           {isAdmin && (
             <div>
